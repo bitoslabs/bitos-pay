@@ -110,8 +110,8 @@
     if (els.footer) els.footer.hidden = live;
     if (live) {
       if (els.brandLink) {
-        els.brandLink.removeAttribute("href");
-        els.brandLink.setAttribute("aria-disabled", "true");
+        els.brandLink.setAttribute("href", "/console/");
+        els.brandLink.removeAttribute("aria-disabled");
       }
       els.simulate.hidden = true;
       els.expire.hidden = true;

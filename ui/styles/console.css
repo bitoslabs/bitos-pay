@@ -921,6 +921,13 @@ body[data-page="console"] .skip-link {
   letter-spacing: -0.035em;
   white-space: nowrap;
   box-shadow: 0 10px 28px -24px rgba(0, 0, 0, 0.45);
+  transition: background 0.18s, transform 0.18s;
+}
+
+.console-brand:hover,
+.console-brand:focus-visible {
+  background: var(--soft);
+  transform: translateY(-1px);
 }
 
 .console-brand .brand-mark {
