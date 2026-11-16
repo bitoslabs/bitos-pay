@@ -25,8 +25,8 @@ body {
 }
 
 body.lang-lo {
-  --font-main: "Noto Sans Lao", "Inter", system-ui, sans-serif;
-  --font-head: "Noto Sans Lao", "Outfit", system-ui, sans-serif;
+  --font-main: "Kom", "Noto Sans Lao", "Inter", system-ui, sans-serif;
+  --font-head: "Kom", "Noto Sans Lao", "Outfit", system-ui, sans-serif;
 }
 
 [hidden] {
