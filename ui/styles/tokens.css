@@ -1,0 +1,61 @@
+/* Design tokens: shared BitOS Pay palette and type scale. */
+:root {
+  color-scheme: dark;
+  --bg: #0b0b0b;
+  --elev: #121214;
+  --card: #131316;
+  --text: #f8f9fa;
+  --text2: #a0a0a0;
+  --muted: #74777d;
+  --brand: #ffc107;
+  --brand2: #ffd54f;
+  --accent: #f7931a;
+  --accent2: #e07b0a;
+  --brand-soft: rgba(255, 193, 7, 0.1);
+  --brand-line: rgba(255, 193, 7, 0.24);
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --bad: #fb7185;
+  --nos: #8b5cf6;
+  --line: rgba(255, 255, 255, 0.08);
+  --line2: rgba(255, 255, 255, 0.14);
+  --s1: rgba(255, 255, 255, 0.028);
+  --s2: rgba(255, 255, 255, 0.055);
+  --nav: rgba(11, 11, 11, 0.82);
+  --footer: #080808;
+  --grid: rgba(255, 193, 7, 0.035);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --font-main: "Inter", system-ui, sans-serif;
+  --font-head: "Outfit", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Menlo", "Monaco", ui-monospace, monospace;
+  --hex: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f8f9fa;
+  --elev: #ffffff;
+  --card: #ffffff;
+  --text: #0b0b0b;
+  --text2: #55585e;
+  --muted: #74777d;
+  --brand: #b45309;
+  --brand2: #c2410c;
+  --accent: #c2410c;
+  --accent2: #9a3412;
+  --brand-soft: rgba(247, 147, 26, 0.1);
+  --brand-line: rgba(194, 65, 12, 0.22);
+  --line: rgba(11, 11, 11, 0.1);
+  --line2: rgba(11, 11, 11, 0.18);
+  --s1: rgba(11, 11, 11, 0.025);
+  --s2: rgba(11, 11, 11, 0.05);
+  --nav: rgba(248, 249, 250, 0.88);
+  --footer: #eef0f2;
+  --grid: rgba(194, 65, 12, 0.05);
+  --shadow: 0 18px 50px rgba(11, 11, 11, 0.08);
+}
+

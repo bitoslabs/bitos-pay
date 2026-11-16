@@ -1,0 +1,19 @@
+node_modules/
+orchestrator/evidence/*
+!orchestrator/evidence/.gitkeep
+orchestrator/state/*.local.json
+services/rust-api/target/
+dist/
+.DS_Store
+
+# BitOS ID reference store (synthetic local data)
+bitos-id-trust/service/data/
+service/data/
+
+# Local credentials and runtime state
+.env
+.env.local
+bitos-pay/service/.env
+bitos-pay/service/data/
+
+server.md

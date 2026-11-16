@@ -1,0 +1,35 @@
+/* Print only the paid receipt. */
+@media print {
+  .ticker,
+  .site-header,
+  .footer,
+  .checkout-head,
+  .checkout-grid,
+  .toast,
+  .skip-link {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .checkout-page {
+    display: block;
+    padding: 0;
+  }
+
+  .success-panel {
+    display: block !important;
+    border: 0;
+    background: #fff;
+    color: #000;
+  }
+
+  .success-panel .detail-row,
+  .success-panel .detail-row span,
+  .success-panel .detail-row strong {
+    color: #000;
+  }
+}

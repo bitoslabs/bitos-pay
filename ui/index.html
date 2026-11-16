@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BitOS Pay synthetic merchant dashboard and checkout reference UI. No real payments, keys or invoices." />
+  <title>BitOS Pay — Merchant workspace</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230b0b0b'/%3E%3Cpath d='M13 2 4 14h6l-1 8 9-12h-6l1-8Z' fill='%23f7931a'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Outfit:wght@600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Noto+Sans+Lao:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem("pay-theme") || "dark";
+      document.documentElement.lang = localStorage.getItem("pay-lang") === "lo" ? "lo" : "en";
+    } catch (error) {
+      document.documentElement.dataset.theme = "dark";
+    }
+  </script>
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+  <link rel="stylesheet" href="styles/dashboard.css" />
+  <link rel="stylesheet" href="styles/responsive.css" />
+
+</head>
+<body data-page="dashboard">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="ticker" aria-hidden="true">
+    <span>SYNTHETIC REFERENCE UI ◆ SANDBOX ONLY ◆ NO REAL INVOICES ◆ NO BROWSER SECRETS ◆&nbsp;SYNTHETIC REFERENCE UI ◆ SANDBOX ONLY ◆ NO REAL INVOICES ◆ NO BROWSER SECRETS ◆&nbsp;</span>
+  </div>
+
+  <header class="site-header">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html" aria-label="BitOS Pay home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
+          </svg>
+        </span>
+        <span>BitOS <em>Pay</em></span>
+      </a>
+
+      <button class="nav-toggle" type="button" data-nav-toggle aria-controls="navLinks" aria-expanded="false">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+        <span class="sr-only" data-i18n="common.menu">Menu</span>
+      </button>
+
+      <nav class="nav-links" id="navLinks" data-nav-links aria-label="Primary" data-i18n-aria-label="nav.primary">
+        <a class="nav-link" href="#overview" aria-current="page" data-i18n="nav.overview">Overview</a>
+        <a class="nav-link" href="#payments" data-i18n="nav.payments">Payments</a>
+        <a class="nav-link" href="checkout.html" data-i18n="nav.checkout">Checkout</a>
+        <a class="nav-link" href="#developers" data-i18n="nav.developers">Developers</a>
+      </nav>
+
+      <div class="nav-actions">
+        <span class="chip chip-warn" data-i18n="common.sandbox">Sandbox</span>
+        <button class="icon-btn" type="button" data-lang-toggle aria-label="Switch language" data-i18n-aria-label="common.language">
+          <span data-lang-current>EN</span><span class="muted">/ ລາວ</span>
+        </button>
+        <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch color theme" data-i18n-aria-label="common.theme" aria-pressed="false">
+          <svg class="i theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4 7 7 0 1 0 20 15.2Z" /></svg>
+          <svg class="i theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container page" id="main">
+    <div class="page-head" id="overview">
+      <div>
+        <span class="eyebrow" data-i18n="dash.eyebrow">Merchant workspace</span>
+        <h1 data-i18n="dash.title">Payments at a glance</h1>
+        <p data-i18n="dash.lead">A synthetic merchant view of intents, settlement and delivery health. Every amount is an integer in sats.</p>
+      </div>
+      <div class="page-actions">
+        <span class="chip chip-brand" data-i18n="common.synthetic">Synthetic data</span>
+        <a class="btn btn-glass" href="checkout.html" data-i18n="dash.openCheckout">Open checkout</a>
+        <a class="btn btn-primary" href="#create" data-i18n="dash.newRequest">Create payment request</a>
+      </div>
+    </div>
+
+    <section class="grid-stats" aria-label="Today's summary">
+      <article class="stat-card">
+        <span class="stat-label" data-i18n="dash.todayVolume">Today's volume</span>
+        <strong class="stat-value"><span id="statVolume">1,840,000</span><span class="unit">SAT</span></strong>
+        <div class="stat-meta"><span class="dot"></span><span data-i18n="dash.ledgerDerived">Ledger derived</span></div>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label" data-i18n="dash.successful">Successful</span>
+        <strong class="stat-value" id="statSuccess">8</strong>
+        <div class="stat-meta"><span class="dot"></span><span data-i18n="dash.updated">Updated just now</span></div>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label" data-i18n="dash.pending">Pending</span>
+        <strong class="stat-value" id="statPending">2</strong>
+        <div class="stat-meta"><span class="dot warn"></span><span data-i18n="dash.awaiting">Awaiting provider confirmation</span></div>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label" data-i18n="dash.webhookHealth">Webhook health</span>
+        <strong class="stat-value">99.2<span class="unit">%</span></strong>
+        <div class="stat-meta"><span class="dot"></span><span data-i18n="dash.allDelivered">All deliveries delivered</span></div>
+      </article>
+    </section>
+
+    <div class="grid-main">
+      <div class="stack">
+        <section class="card" id="create">
+          <div class="card-head">
+            <div>
+              <h2 data-i18n="dash.createTitle">New payment request</h2>
+              <p data-i18n="dash.createLead">Create a sandbox intent and preview the customer checkout.</p>
+            </div>
+            <span class="chip chip-brand">PAY-F01</span>
+          </div>
+
+          <form id="createForm" novalidate>
+            <div class="field-grid">
+              <div class="field">
+                <label for="amount" data-i18n="dash.amount">Amount (sats)</label>
+                <div class="field-control">
+                  <input id="amount" name="amount" type="number" inputmode="numeric" min="1" max="100000000" step="1" value="25000" required aria-describedby="amountHint amountError" />
+                  <span class="field-suffix" aria-hidden="true" data-i18n="common.sats">SAT</span>
+                </div>
+                <p class="hint" id="amountHint" data-i18n="dash.amountHint">Integer sats. No decimals or string coercion.</p>
+                <p class="error" id="amountError" data-i18n="dash.amountError" role="alert" hidden>Enter a whole number between 1 and 100,000,000.</p>
+              </div>
+              <div class="field">
+                <label for="reference">
+                  <span data-i18n="dash.reference">Reference</span>
+                  <span class="field-optional" data-i18n="common.optional">Optional</span>
+                </label>
+                <input id="reference" name="reference" type="text" maxlength="200" value="BNOS-ORDER-1043" autocomplete="off" spellcheck="false" aria-describedby="referenceHint" />
+                <p class="hint" id="referenceHint" data-i18n="dash.referenceHint">Optional order or invoice reference.</p>
+              </div>
+              <div class="field">
+                <label for="memo">
+                  <span data-i18n="dash.memo">Memo</span>
+                  <span class="field-optional" data-i18n="common.optional">Optional</span>
+                </label>
+                <input id="memo" name="memo" type="text" maxlength="200" value="Synthetic order" autocomplete="off" spellcheck="false" aria-describedby="memoHint" />
+                <p class="hint" id="memoHint" data-i18n="dash.memoHint">Visible to the customer on checkout.</p>
+              </div>
+              <div class="field">
+                <label for="expiry" data-i18n="dash.expiry">Expiry</label>
+                <select id="expiry" name="expiry">
+                  <option value="15" data-i18n="dash.expiry15">15 minutes</option>
+                  <option value="30" data-i18n="dash.expiry30">30 minutes</option>
+                  <option value="60" data-i18n="dash.expiry60">1 hour</option>
+                </select>
+                <p class="hint" data-i18n="dash.expiryHint">UTC ISO-8601 on the API; local time in the UI.</p>
+              </div>
+            </div>
+
+            <div class="form-foot">
+              <p class="hint" data-i18n="dash.createNote">Synthetic only. No Lightning node, wallet or real invoice is involved.</p>
+              <button class="btn btn-primary" type="submit" id="createButton" data-i18n="dash.create">Create request</button>
+            </div>
+          </form>
+
+          <div class="preview" id="preview" hidden>
+            <div class="preview-grid">
+              <div class="qr-frame">
+                <canvas id="previewQr" width="232" height="232" role="img" aria-label="Illustrative QR — not scannable."></canvas>
+              </div>
+              <div>
+                <h3 data-i18n="dash.previewTitle">Payment preview</h3>
+                <div class="preview-amount"><span id="previewAmount">25,000</span><small>SAT</small></div>
+                <p class="hint" id="previewReference">BNOS-ORDER-1043</p>
+                <p class="hint" data-i18n="dash.qrNote">Illustrative QR — not scannable.</p>
+                <div class="invoice">
+                  <code id="previewInvoice">lnbc25000n1synthetic…</code>
+                  <button class="btn btn-glass btn-sm" type="button" id="copyPreview" data-i18n="dash.copyInvoice">Copy invoice</button>
+                </div>
+                <div class="preview-actions">
+                  <a class="btn btn-primary btn-sm" id="previewOpen" href="checkout.html" data-i18n="dash.previewOpen">Open checkout</a>
+                  <button class="btn btn-ghost btn-sm" type="button" id="copyPreviewLink" data-i18n="dash.copyLink">Copy checkout link</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="payments">
+          <div class="card-head">
+            <div>
+              <h2 data-i18n="dash.history">Payment history</h2>
+              <p data-i18n="dash.historyLead">Select a payment to inspect its attempt, fee and delivery state.</p>
+            </div>
+            <div class="tabs" id="filterTabs" role="group" aria-label="Filter payments">
+              <button class="tab" type="button" data-filter="all" aria-pressed="true" data-i18n="dash.filterAll">All</button>
+              <button class="tab" type="button" data-filter="paid" aria-pressed="false" data-i18n="dash.filterPaid">Paid</button>
+              <button class="tab" type="button" data-filter="pending" aria-pressed="false" data-i18n="dash.filterPending">Pending</button>
+              <button class="tab" type="button" data-filter="expired" aria-pressed="false" data-i18n="dash.filterExpired">Expired</button>
+            </div>
+          </div>
+
+          <p class="sr-only" id="paymentsStatus" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="dash.payment">Payment</th>
+                  <th scope="col" data-i18n="dash.status">Status</th>
+                  <th scope="col" data-i18n="dash.amountCol">Amount</th>
+                  <th scope="col" data-i18n="dash.time">Time</th>
+                </tr>
+              </thead>
+              <tbody id="paymentsBody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="paymentsEmpty" hidden data-i18n="dash.empty">No payments match this filter yet.</div>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="card" id="settlement">
+          <div class="card-head">
+            <div>
+              <h2 data-i18n="dash.settlement">Settlement</h2>
+              <p data-i18n="dash.settlementLead">Current sandbox period.</p>
+            </div>
+            <span class="chip chip-ok" data-i18n="dash.reconciled">Reconciled</span>
+          </div>
+          <div class="settlement-list">
+            <div class="settlement-row"><span data-i18n="dash.gross">Gross</span><strong id="settlementGross">1,840,000 SAT</strong></div>
+            <div class="settlement-row"><span data-i18n="dash.fees">Fees</span><strong id="settlementFees">18,400 SAT</strong></div>
+            <div class="settlement-row total"><span data-i18n="dash.net">Net</span><strong id="settlementNet">1,821,600 SAT</strong></div>
+          </div>
+          <div class="settlement-bar" aria-hidden="true"><i></i></div>
+          <div class="meta-line"><span class="dot"></span><span data-i18n="dash.reconciledNote">Ledger balanced · 14:00 UTC</span></div>
+        </section>
+
+        <section class="card" id="developers">
+          <div class="card-head">
+            <div>
+              <h2 data-i18n="dash.developer">Developer sandbox</h2>
+              <p data-i18n="dash.developerLead">Keys and delivery health for this local reference.</p>
+            </div>
+            <span class="chip chip-warn" data-i18n="dash.healthy">Healthy</span>
+          </div>
+          <div class="dev-list">
+            <div class="dev-row">
+              <span class="dev-label" data-i18n="dash.apiKey">Test API key</span>
+              <span class="dev-value">bp_test_••••••••fca44</span>
+            </div>
+            <div class="dev-row">
+              <span class="dev-label" data-i18n="dash.webhook">Webhook endpoint</span>
+              <span class="dev-value">example.test/webhooks/bitos-pay</span>
+            </div>
+            <div class="dev-row">
+              <span class="dev-label" data-i18n="dash.lastDelivery">Last delivery</span>
+              <span class="chip chip-ok">200 · 14:35 UTC</span>
+            </div>
+          </div>
+          <pre class="code-snippet" aria-label="Sandbox API example"><code><span class="k">POST</span> /v1/payment-intents
+<span class="k">Authorization:</span> Bearer bp_test_…
+<span class="k">Idempotency-Key:</span> demo-1043
+<span class="s">{ "amount": 25000, "currency": "SAT", "scale": 0 }</span></code></pre>
+          <div class="preview-actions">
+            <a class="btn btn-glass btn-sm" href="../docs/API.md" data-i18n="dash.readDocs">Read API docs</a>
+            <a class="btn btn-ghost btn-sm" href="../docs/RUNNING.md" data-i18n="dash.runBook">Runbook</a>
+          </div>
+        </section>
+
+        <section class="card note-card">
+          <h2 data-i18n="dash.syntheticNoteTitle">Reference UI, not production</h2>
+          <p data-i18n="dash.syntheticNoteBody">This page is a static, synthetic dashboard. It does not call the API, hold a key or prove a payment.</p>
+          <ul>
+            <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg><span data-i18n="dash.browserSecret">Secret keys never belong in a browser.</span></li>
+            <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg><span data-i18n="dash.providerFinal">Provider confirmation is final; this page does not decide success.</span></li>
+            <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg><span data-i18n="dash.noWallet">No wallet balance is implied by these ledger figures.</span></li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span data-i18n="footer.reference">BitOS Pay reference UI · synthetic data only</span>
+      <div class="footer-links">
+        <a href="../docs/API.md" data-i18n="footer.api">API</a>
+        <a href="../docs/RUNNING.md" data-i18n="footer.runbook">Runbook</a>
+        <a href="../../ecosystem-mockup.html" data-i18n="footer.ecosystem">Ecosystem mockup</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" hidden>
+    <div class="drawer-head">
+      <div>
+        <span class="eyebrow" data-i18n="detail.eyebrow">Payment detail</span>
+        <h2 id="drawerTitle" data-i18n="detail.title">Payment detail</h2>
+      </div>
+      <button class="drawer-close" type="button" id="drawerClose" aria-label="Close" data-i18n-aria-label="common.close">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="scripts/storage.js"></script>
+  <script src="scripts/i18n.js"></script>
+  <script src="scripts/ui.js"></script>
+  <script src="scripts/qr.js"></script>
+  <script src="scripts/demo-data.js"></script>
+  <script src="scripts/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "@bitos/pay-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "BitOS Pay zero-build UI plus generated browser signer bundles.",
+  "scripts": {
+    "build:signers": "esbuild src/nostr-worker.js --bundle --format=iife --platform=browser --outfile=scripts/nostr-worker.js && esbuild src/nostr-signer.js --bundle --format=iife --platform=browser --outfile=scripts/nostr-signer.js && esbuild src/qr.js --bundle --format=iife --platform=browser --outfile=scripts/qr.js"
+  },
+  "dependencies": {
+    "nostr-tools": "^2.26.0",
+    "qrcode-generator": "^2.0.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BitOS Pay merchant console. Access and data depend on the configured console mode." />
+  <title>BitOS Pay — Merchant console</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230b0b0b'/%3E%3Cpath d='M13 2 4 14h6l-1 8 9-12h-6l1-8Z' fill='%23f7931a'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+  <link rel="stylesheet" href="styles/dashboard.css" />
+  <link rel="stylesheet" href="styles/console.css" />
+  <link rel="stylesheet" href="styles/responsive.css" />
+</head>
+<body data-page="console">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="console-shell">
+    <header class="console-topbar">
+      <a class="console-brand" href="/console/" aria-label="BitOS Pay console">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
+          </svg>
+        </span>
+        <span class="console-brand-text">BitOS <em>Pay</em></span>
+      </a>
+
+      <nav class="console-tabs" aria-label="Console sections">
+        <a href="#/overview" data-goto="overview" data-view="overview" aria-current="page" data-i18n="console.navOverview">Overview</a>
+        <a href="#/payments" data-goto="payments" data-view="payments" data-i18n="console.navPayments">Payments</a>
+        <a href="#/developers" data-goto="developers" data-view="developers" data-i18n="console.navDevelopers">Developers</a>
+        <a href="#/settings" data-goto="settings" data-view="settings" data-i18n="console.navSettings">Settings</a>
+      </nav>
+
+      <div class="console-tools">
+        <div class="console-env-toggle" id="envToggle" role="group" aria-label="Console environment" hidden>
+          <button type="button" data-console-mode="sandbox" aria-pressed="true">Sandbox</button>
+          <button type="button" data-console-mode="live" aria-pressed="false">Live</button>
+        </div>
+        <span class="chip chip-warn console-sandbox" id="envChip" data-env-label>Sandbox</span>
+        <button class="icon-btn console-icon console-secure-action" type="button" id="topSearch" aria-label="Search payments" data-i18n-aria-label="console.searchPayments" title="Search payments" data-i18n-title="console.searchPayments">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m16 16 4 4" /></svg>
+        </button>
+        <button class="icon-btn console-icon" type="button" data-lang-toggle aria-label="Switch language" data-i18n-aria-label="common.language">
+          <span data-lang-current>EN</span>
+        </button>
+        <button class="icon-btn console-icon" type="button" id="helpButton" aria-label="Help" data-i18n-aria-label="console.help" title="Help" data-i18n-title="console.help">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9.7 9a2.4 2.4 0 1 1 3.7 2c-.9.6-1.4 1.1-1.4 2.2" /><path d="M12 17h.01" /></svg>
+        </button>
+        <button class="icon-btn console-icon console-theme-top" type="button" data-theme-toggle aria-label="Switch color theme" data-i18n-aria-label="common.theme" aria-pressed="false">
+          <svg class="i theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4 7 7 0 1 0 20 15.2Z" /></svg>
+          <svg class="i theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+        </button>
+        <div class="console-account">
+          <span class="avatar" id="accountAvatar" aria-hidden="true">BP</span>
+          <span class="account-copy">
+            <strong id="topbarMerchant">Sandbox</strong>
+            <small id="topbarMeta">Reference console</small>
+          </span>
+          <button class="btn btn-glass btn-sm console-signout" type="button" id="signOut" hidden data-i18n="console.signOut">Sign out</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="console-main">
+      <aside class="console-rail" aria-label="Console navigation">
+        <div class="rail-tools">
+          <button class="rail-tool" type="button" data-theme-toggle aria-label="Switch color theme" data-i18n-aria-label="common.theme" aria-pressed="false">
+            <svg class="i theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4 7 7 0 1 0 20 15.2Z" /></svg>
+            <svg class="i theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+          </button>
+        </div>
+        <nav class="rail-nav">
+          <a class="rail-link is-active" href="#/overview" data-goto="overview" data-nav="overview" aria-label="Overview" data-i18n-aria-label="console.navOverview" data-i18n-title="console.navOverview" title="Overview">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /></svg>
+          </a>
+          <a class="rail-link" href="#/payments" data-open-create aria-label="Create request" data-i18n-aria-label="console.navCreate" data-i18n-title="console.navCreate" title="Create">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+          </a>
+          <a class="rail-link" href="#/payments" data-goto="payments" data-nav="payments" aria-label="Payments" data-i18n-aria-label="console.navPayments" data-i18n-title="console.navPayments" title="Payments">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7" /></svg>
+          </a>
+          <a class="rail-link" href="#/developers" data-goto="developers" data-nav="developers" aria-label="Developers" data-i18n-aria-label="console.navDevelopers" data-i18n-title="console.navDevelopers" title="Developers">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="3" /><path d="m11 12 9 0M17 9v6" /></svg>
+          </a>
+          <a class="rail-link" href="#/developers" data-goto="developers" data-scroll-to="webhooks" aria-label="Webhooks" data-i18n-aria-label="console.navWebhooks" data-i18n-title="console.navWebhooks" title="Webhooks">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 14.5 7 17a3 3 0 0 1-4-4l3-3a3 3 0 0 1 4 0" /><path d="m14.5 9.5 2.5-2.5a3 3 0 1 1 4 4l-3 3a3 3 0 0 1-4 0" /><path d="m10 14 4-4" /></svg>
+          </a>
+          <a class="rail-link" href="#/settings" data-goto="settings" data-nav="settings" aria-label="Settings" data-i18n-aria-label="console.navSettings" data-i18n-title="console.navSettings" title="Settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4Z" /><path d="m4 12 8 4 8-4M4 17l8 4 8-4" /></svg>
+          </a>
+        </nav>
+        <div class="rail-foot">
+          <a class="rail-link" href="#/settings" data-goto="settings" data-scroll-to="sessionCard" aria-label="Session" data-i18n-aria-label="console.session" data-i18n-title="console.session" title="Session">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z" /><path d="m9 12 2 2 4-4" /></svg>
+          </a>
+        </div>
+      </aside>
+
+      <main class="console-body" id="main">
+        <section class="console-login" id="loginView">
+          <div class="console-auth-shell">
+            <aside class="console-auth-brand" aria-label="Why sign in with Nostr">
+              <span class="eyebrow" data-i18n="console.brandKicker">NOSTR-NATIVE PAYMENTS</span>
+              <h2 data-i18n="console.brandTitle">One key. No passwords.</h2>
+              <p class="console-auth-lead" id="brandLead" data-i18n="console.brandLead">Use the Nostr key you already trust. One signature opens a sandbox workspace, API key and console.</p>
+              <ol class="console-auth-steps">
+                <li><span>01</span><div><strong data-i18n="console.brandStep1Title">Sign with Nostr</strong><small data-i18n="console.brandStep1">Browser, remote or local signer</small></div></li>
+                <li><span>02</span><div><strong data-i18n="console.brandStep2Title">Get workspace + key</strong><small id="brandStep2" data-i18n="console.brandStep2">Sandbox only; no email or card</small></div></li>
+                <li><span>03</span><div><strong data-i18n="console.brandStep3Title">Connect BNOS</strong><small data-i18n="console.brandStep3">Link from Settings → BitOS Pay</small></div></li>
+              </ol>
+              <div class="console-auth-trust">
+                <span class="chip chip-ok" data-i18n="console.brandTrust1">No email</span>
+                <span class="chip" data-i18n="console.brandTrust2">No card</span>
+                <span class="chip chip-warn" data-env-label>Sandbox</span>
+              </div>
+            </aside>
+
+            <div class="card console-login-card">
+              <span class="eyebrow" data-i18n="console.loginEyebrow">Merchant console</span>
+              <h1 id="loginTitle" data-i18n="console.loginTitle">Sign in to your workspace</h1>
+              <p class="page-lead" id="loginLead" data-i18n="console.loginLead">Use the Nostr key linked to your sandbox workspace. No email, password or card.</p>
+              <p class="error console-auth-alert" id="loginAlert" role="alert" hidden></p>
+
+              <div class="console-auth-primary">
+                <div class="console-auth-mode" id="authMode" role="group" aria-label="Sign in or create account">
+                  <button class="tab" type="button" id="signInMode" aria-pressed="true" data-i18n="console.signInMode">Sign in</button>
+                  <button class="tab" type="button" id="createAccountMode" aria-pressed="false" data-i18n="console.createMode">Create account</button>
+                </div>
+                <p class="hint" id="authModeHint" data-i18n="console.signInModeHint">Use an existing Nostr key. If the key is new, a sandbox account is created automatically.</p>
+
+                <section class="console-keygen" id="generateKeyPanel" hidden aria-labelledby="keygenTitle">
+                  <div class="console-keygen-head">
+                    <span class="console-keygen-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4" /><path d="m11 12 8-8M16 7l2 2M14 9l2 2" /></svg>
+                    </span>
+                    <div>
+                      <span class="eyebrow" data-i18n="console.keygenEyebrow">No signer yet?</span>
+                      <h2 id="keygenTitle" data-i18n="console.keygenTitle">Create a fresh identity</h2>
+                    </div>
+                  </div>
+                  <p data-i18n="console.keygenLead">Generate a Nostr key in this browser. Save the nsec once, then use it to open your sandbox.</p>
+                  <button class="btn btn-primary" type="button" id="generateKeyButton" data-i18n="console.keygenAction">Generate new key</button>
+                  <p class="console-privacy">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+                    <span data-i18n="console.keygenPrivacy">Generated locally. The nsec is never sent to BitOS.</span>
+                  </p>
+                </section>
+
+                <section class="console-keygen console-backup" id="backupPanel" hidden aria-labelledby="backupTitle">
+                  <div class="console-backup-head">
+                    <span class="chip chip-warn" data-i18n="console.backupChip">Back up</span>
+                    <span data-i18n="console.backupStep">Step 2 of 2 · Back up your key</span>
+                  </div>
+                  <h2 id="backupTitle" data-i18n="console.backupTitle">Save your nsec now</h2>
+                  <p data-i18n="console.backupLead">This key controls your account. BitOS cannot recover it if you lose it.</p>
+                  <div class="field">
+                    <span class="console-field-label" data-i18n="console.backupNpub">Public key (npub)</span>
+                    <div class="console-copy-field">
+                      <code id="backupNpub"></code>
+                      <button class="btn btn-ghost btn-sm" type="button" id="copyNpubButton" data-i18n="common.copy">Copy</button>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="backupNsec" data-i18n="console.backupNsec">Secret key (nsec)</label>
+                    <div class="console-secret-field">
+                      <input id="backupNsec" type="password" readonly autocomplete="off" spellcheck="false" aria-describedby="backupError backupStatus" />
+                      <button class="btn btn-ghost btn-sm" type="button" id="revealNsecButton" aria-controls="backupNsec" aria-pressed="false" data-i18n="console.backupReveal">Show</button>
+                    </div>
+                  </div>
+                  <div class="console-backup-actions">
+                    <button class="btn btn-glass btn-sm" type="button" id="copyNsecButton" data-i18n="console.backupCopy">Copy nsec</button>
+                    <button class="btn btn-glass btn-sm" type="button" id="downloadNsecButton" data-i18n="console.backupDownload">Download backup</button>
+                  </div>
+                  <label class="console-check">
+                    <input id="backupAck" type="checkbox" />
+                    <span data-i18n="console.backupAck">I saved my nsec somewhere safe.</span>
+                  </label>
+                  <button class="btn btn-primary" type="button" id="createWithKeyButton" disabled data-i18n="console.backupCreate">Create sandbox account</button>
+                  <button class="btn btn-ghost btn-sm" type="button" id="generateAgainButton" data-i18n="console.backupAgain">Generate another key</button>
+                  <p class="error" id="backupError" role="alert" hidden></p>
+                  <p class="console-status" id="backupStatus" role="status" aria-live="polite"></p>
+                </section>
+
+                <div class="console-existing" id="existingAuthPanel">
+                  <div class="console-auth-divider" id="existingDivider" hidden><span data-i18n="console.existingDivider">Or use an existing Nostr key</span></div>
+                  <button class="btn btn-primary" type="button" id="nostrLoginButton" hidden data-i18n="console.nostrSignIn">Continue with browser signer</button>
+                  <div class="console-auth-actions">
+                    <button class="btn btn-glass" type="button" id="remoteLoginToggle" hidden data-i18n="console.remoteToggle">Remote signer</button>
+                    <button class="btn btn-glass" type="button" id="nsecLoginToggle" hidden data-i18n="console.nsecToggle">Use nsec</button>
+                  </div>
+                  <p class="console-privacy">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+                    <span data-i18n="console.authPrivacy">BitOS never receives your private key.</span>
+                  </p>
+                  <p class="hint" id="nostrLoginHelp" data-i18n="console.nostrNoExtension">Install a NIP-07 extension, or use a remote signer or nsec. New keys create a sandbox account; existing keys sign in.</p>
+                  <p class="console-status" id="nostrLoginStatus" role="status" aria-live="polite"></p>
+
+                  <div class="console-remote-panel" id="remoteLoginPanel" hidden>
+                    <div class="field">
+                      <label for="bunkerUrl" data-i18n="console.remoteLabel">Bunker URL</label>
+                      <input id="bunkerUrl" type="password" autocomplete="off" spellcheck="false" placeholder="bunker://…" aria-describedby="remoteLoginStatus" />
+                    </div>
+                    <div class="preview-actions">
+                      <button class="btn btn-glass btn-sm" type="button" id="remoteLoginButton" data-i18n="console.remoteContinue">Continue with remote signer</button>
+                      <button class="btn btn-ghost btn-sm" type="button" id="remoteQrButton" data-i18n="console.remoteQr">Show QR</button>
+                    </div>
+                    <p class="hint" id="remoteLoginHint" hidden data-i18n="console.remoteDisabled">Remote signing is disabled. Set PAY_CONSOLE_NOSTR_RELAY=wss://… and restart the server.</p>
+                    <div class="console-remote-qr" id="remoteQrPanel" hidden>
+                      <div class="qr-frame"><canvas id="remoteQr" width="232" height="232" role="img" aria-label="NIP-46 connection QR."></canvas></div>
+                      <p class="hint" id="remoteQrStatus" data-i18n="console.remoteQrWait">Scan with a NIP-46 signer and approve the connection.</p>
+                      <button class="btn btn-ghost btn-sm" type="button" id="remoteQrCancel" data-i18n="common.cancel">Cancel</button>
+                    </div>
+                    <p class="console-status" id="remoteLoginStatus" role="status" aria-live="polite"></p>
+                  </div>
+
+                  <div class="console-nsec-panel" id="nsecLoginPanel" hidden>
+                    <p class="error" data-i18n="console.nsecWarning">Advanced: entering nsec exposes the key to this page's memory. Prefer NIP-07 or NIP-46. The key is never sent to the server and is cleared after signing.</p>
+                    <div class="field">
+                      <label for="nsecKey" data-i18n="console.nsecLabel">nsec key</label>
+                      <input id="nsecKey" type="password" autocomplete="off" spellcheck="false" placeholder="nsec1…" aria-describedby="nsecLoginStatus" />
+                    </div>
+                    <button class="btn btn-glass btn-sm" type="button" id="nsecLoginButton" data-i18n="console.nsecContinue">Continue with nsec</button>
+                    <p class="hint" id="nsecLoginHint" hidden data-i18n="console.nsecDisabled">Local nsec login is disabled. Set PAY_CONSOLE_ALLOW_NSEC=1 and restart the server.</p>
+                    <p class="console-status" id="nsecLoginStatus" role="status" aria-live="polite"></p>
+                  </div>
+                </div>
+              </div>
+
+              <details class="console-more" id="workspaceDetails">
+                <summary data-i18n="console.workspaceDetails">New workspace name (optional)</summary>
+                <p class="hint" data-i18n="console.workspaceDetailsHint">Used only when this key is new. Leave blank to name it from the key.</p>
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="onboardOrg" data-i18n="console.onboardOrg">Workspace name</label>
+                    <input id="onboardOrg" type="text" maxlength="120" autocomplete="organization" />
+                  </div>
+                  <div class="field">
+                    <label for="onboardMerchant" data-i18n="console.onboardMerchant">Merchant name</label>
+                    <input id="onboardMerchant" type="text" maxlength="120" autocomplete="organization" />
+                  </div>
+                </div>
+              </details>
+
+              <details class="console-more" id="apiKeyDetails">
+                <summary data-i18n="console.apiKeyToggle">I already have an API key</summary>
+                <form id="loginForm" novalidate>
+                  <div class="field">
+                    <label for="apiKey" id="keyLabel" data-i18n="console.keyLabel">Sandbox API key</label>
+                    <input id="apiKey" name="api_key" type="password" autocomplete="off" spellcheck="false" minlength="20" maxlength="200" required aria-describedby="keyHint loginError" />
+                    <p class="hint" id="keyHint" data-i18n="console.keyHint">Sent once to this same-origin server. It is not stored in browser storage or returned by the API.</p>
+                    <p class="error" id="loginError" hidden></p>
+                  </div>
+                  <button class="btn btn-primary" type="submit" id="loginButton" data-i18n="console.signIn">Sign in</button>
+                </form>
+              </details>
+
+              <div class="console-security">
+                <strong data-i18n="console.securityTitle">Reference-only session</strong>
+                <p id="securityNote" data-i18n="console.securityNote">The server keeps a hashed session token in an HttpOnly cookie. Sandbox mode rejects live keys and does not verify a business.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="consoleView" hidden>
+          <section class="dash-card console-welcome" id="welcomeKeyPanel" hidden>
+            <div class="card-head">
+              <div>
+                <h2 data-i18n="console.welcomeTitle">Workspace ready</h2>
+                <p data-i18n="console.welcomeLead">Save this sandbox API key for BNOS or your app. It is shown once; create another key any time.</p>
+              </div>
+              <span class="chip chip-brand" data-env-label>Sandbox</span>
+            </div>
+            <div class="invoice">
+              <code id="welcomeKeyValue"></code>
+              <button class="btn btn-glass btn-sm" type="button" id="copyWelcomeKey" data-i18n="common.copy">Copy</button>
+            </div>
+            <p class="console-welcome-npub" id="welcomeNpubLine" hidden>
+              <span data-i18n="console.welcomeNpub">Sign-in key</span>
+              <code id="welcomeNpub"></code>
+            </p>
+            <p class="hint" data-i18n="console.welcomeHint">This key has full sandbox access. Use the API keys section to create narrower keys.</p>
+            <p class="hint" data-i18n="console.welcomeNsecNote">Your nsec was created in this browser and is not stored by BitOS.</p>
+            <button class="btn btn-ghost btn-sm" type="button" id="dismissWelcomeKey" data-i18n="console.welcomeDismiss">I saved it</button>
+          </section>
+
+          <section class="console-page" data-console-view="overview" id="overview">
+            <section class="console-hero">
+              <div class="hero-copy">
+                <p class="hero-date" id="todayLabel">—</p>
+                <h1 class="hero-title"><span id="greeting" data-i18n="console.greetingMorning">Good morning,</span> <span id="merchantName">—</span></h1>
+                <p class="hero-meta"><span id="merchantMeta"></span></p>
+              </div>
+              <div class="page-actions hero-actions">
+                <span class="chip chip-brand" data-env-label>Sandbox</span>
+                <button class="btn btn-glass" type="button" id="refresh" data-i18n="console.refresh">Refresh</button>
+                <button class="btn btn-primary" type="button" data-open-create data-i18n="dash.newRequest">Create payment request</button>
+              </div>
+            </section>
+
+            <div class="dashboard-grid overview-grid">
+              <div class="dash-left">
+    <article class="dash-card balance-card">
+                    <div class="balance-head">
+                      <div>
+                        <span class="dash-label" data-i18n="console.totalBalance">Total balance</span>
+                        <h2 class="balance-value"><span id="balanceTotal">0</span><small>SAT</small></h2>
+                      </div>
+                      <span class="chip" data-env-label>Sandbox</span>
+                    </div>
+                    <p class="hint" id="balanceHint" data-i18n="console.balanceHint">Net ledger position across sandbox accounts.</p>
+                    <div class="balance-actions">
+                      <button class="btn btn-primary" type="button" data-open-create data-i18n="console.newPayment">New payment</button>
+                      <a class="btn btn-glass" href="#settlement" data-i18n="console.viewSettlement">Settlement</a>
+                    </div>
+                    <div class="balance-accounts" id="balances">
+                      <div class="mini-head">
+                        <span data-i18n="console.balances">Ledger balances</span>
+                        <span data-i18n="console.notAWallet">Not a wallet</span>
+                      </div>
+                      <div class="wallet-list" id="balanceList"></div>
+                    </div>
+                  </article>
+
+    <article class="dash-card settlement-card" id="settlement">
+                    <div class="dash-card-head">
+                      <div>
+                        <h2 data-i18n="dash.settlement">Settlement</h2>
+                        <p id="settlementLead" data-i18n="dash.settlementLead">Current sandbox period.</p>
+                      </div>
+                      <span class="chip chip-ok" id="settlementChip" data-i18n="dash.reconciled">Reconciled</span>
+                    </div>
+                    <div class="settlement-hero">
+                      <span class="dash-label" data-i18n="dash.net">Net</span>
+                      <strong class="settlement-value" id="settlementNet">0 SAT</strong>
+                    </div>
+                    <div class="settlement-list">
+                      <div class="settlement-row"><span data-i18n="dash.gross">Gross</span><strong id="settlementGross">0 SAT</strong></div>
+                      <div class="settlement-row"><span data-i18n="dash.fees">Fees</span><strong id="settlementFees">0 SAT</strong></div>
+                    </div>
+                    <progress class="settlement-progress" id="settlementBar" max="100" value="0" aria-label="Net after fees"></progress>
+                    <div class="meta-line"><span class="dot"></span><span id="settlementPeriod">—</span></div>
+                  </article>
+              </div>
+
+              <div class="dash-right">
+                <div class="dash-top">
+      <div class="metric-grid" aria-label="Payment summary">
+        <article class="stat-card stat-card-accent">
+          <div class="stat-top">
+            <span class="stat-label" data-i18n="console.totalVolume">Total volume</span>
+            <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M3 10h18M16 15h2" /></svg></span>
+          </div>
+          <strong class="stat-value"><span id="statVolume">0</span><span class="unit">SAT</span></strong>
+          <div class="stat-meta"><span class="dot"></span><span data-i18n="dash.ledgerDerived">Ledger derived</span></div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label" data-i18n="console.successRecent">Successful · recent</span>
+            <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="m8 12 2.7 2.7L16.5 9" /></svg></span>
+          </div>
+          <strong class="stat-value" id="statSuccess">0</strong>
+          <div class="stat-meta"><span class="dot"></span><span id="statsRange">—</span></div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label" data-i18n="console.pendingRecent">Pending · recent</span>
+            <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg></span>
+          </div>
+          <strong class="stat-value" id="statPending">0</strong>
+          <div class="stat-meta"><span class="dot warn"></span><span data-i18n="dash.awaiting">Awaiting provider confirmation</span></div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label" data-i18n="console.ledgerStatus">Ledger status</span>
+            <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z" /><path d="m9 12 2 2 4-4" /></svg></span>
+          </div>
+          <strong class="stat-value" id="statLedger">—</strong>
+          <div class="stat-meta"><span class="dot" id="ledgerDot"></span><span id="ledgerStatus">—</span></div>
+        </article>
+      </div>
+
+      <article class="dash-card chart-card">
+                        <div class="dash-card-head">
+                          <div>
+                            <h2 data-i18n="console.chartTitle">Payment pulse</h2>
+                            <p data-i18n="console.chartLead">Paid and pending volume over the last seven days.</p>
+                          </div>
+                          <span class="chip" data-i18n="console.chartRange">Last 7 days</span>
+                        </div>
+                        <div class="chart-legend">
+                          <span><i class="legend-paid" aria-hidden="true"></i><span data-i18n="console.chartPaid">Paid</span></span>
+                          <span><i class="legend-pending" aria-hidden="true"></i><span data-i18n="console.chartPending">Pending</span></span>
+                        </div>
+                        <div class="chart-plot">
+                          <div class="chart-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                          <div class="chart-bars" id="chartBars"></div>
+                          <p class="chart-empty" id="chartEmpty" hidden data-i18n="console.chartEmpty">No payments in this window.</p>
+                        </div>
+                        <div class="chart-foot">
+                          <span data-i18n="console.chartRange">Last 7 days</span>
+                          <strong id="chartTotal">0 SAT</strong>
+                        </div>
+                      </article>
+                </div>
+
+    <article class="dash-card recent-card">
+      <div class="dash-card-head">
+        <div>
+          <h2 data-i18n="console.recentActivities">Recent activities</h2>
+          <p data-i18n="console.recentLead">Latest sandbox activity. Open a row for detail.</p>
+        </div>
+        <a class="btn btn-glass btn-sm" href="#/payments" data-goto="payments" data-i18n="console.viewAll">View all</a>
+      </div>
+      <div class="recent-list" id="recentList"></div>
+      <p class="empty" id="recentEmpty" hidden data-i18n="console.noRecent">No payments yet.</p>
+    </article>
+              </div>
+            </div>
+          </section>
+
+          <section class="console-page" data-console-view="payments" hidden>
+            <header class="page-heading">
+              <div>
+                <span class="eyebrow" data-i18n="console.pagePaymentsEyebrow">Payments</span>
+                <h1 data-i18n="console.pagePaymentsTitle">Payment requests</h1>
+                <p data-i18n="console.pagePaymentsLead">Create a sandbox intent, search activity and open payment detail.</p>
+              </div>
+              <div class="page-actions">
+                <a class="btn btn-glass" href="/console/api/exports/payments.csv" download data-i18n="console.exportCsv">Export CSV</a>
+                <button class="btn btn-primary" type="button" data-open-create data-i18n="console.newPayment">New payment</button>
+              </div>
+            </header>
+            <div class="page-stack">
+    <article class="dash-card create-card" id="create">
+                    <div class="dash-card-head">
+                      <div>
+                        <h2 data-i18n="dash.createTitle">New payment request</h2>
+                        <p id="createLead" data-i18n="console.createLead">Creates a real sandbox intent through the API and returns a mock Lightning invoice.</p>
+                      </div>
+                      <span class="chip chip-brand">SANDBOX API</span>
+                    </div>
+                    <form id="createForm" novalidate>
+                      <div class="field-grid">
+                        <div class="field">
+                          <label for="amount" data-i18n="detail.amount">Amount</label>
+                          <div class="field-control">
+                            <input id="amount" name="amount" type="number" inputmode="numeric" min="1" max="100000000" step="1" placeholder="25000" required aria-describedby="amountHint amountError" />
+                            <span class="field-suffix" aria-hidden="true" data-i18n="common.sats">SAT</span>
+                          </div>
+                          <p class="hint" id="amountHint" data-i18n="dash.amountHint">Integer sats. No decimals or string coercion.</p>
+                          <p class="error" id="amountError" data-i18n="dash.amountError" role="alert" hidden>Enter a whole number between 1 and 100,000,000.</p>
+                        </div>
+                        <div class="field">
+                          <label for="reference">
+                            <span data-i18n="dash.reference">Reference</span>
+                            <span class="field-optional" data-i18n="common.optional">Optional</span>
+                          </label>
+                          <input id="reference" name="reference" type="text" maxlength="200" placeholder="ORDER-1043" autocomplete="off" spellcheck="false" aria-describedby="referenceHint" />
+                          <p class="hint" id="referenceHint" data-i18n="dash.referenceHint">Optional order or invoice reference.</p>
+                        </div>
+                        <div class="field">
+                          <label for="location">
+                            <span data-i18n="console.location">Location</span>
+                            <span class="field-optional" data-i18n="common.optional">Optional</span>
+                          </label>
+                          <select id="location" aria-describedby="locationHint">
+                            <option value="" data-i18n="console.noLocation">No location</option>
+                          </select>
+                          <p class="hint" id="locationHint" data-i18n="console.locationHint">Branch shown on the receipt, if configured.</p>
+                        </div>
+                        <div class="field">
+                          <label for="memo">
+                            <span data-i18n="dash.memo">Memo</span>
+                            <span class="field-optional" data-i18n="common.optional">Optional</span>
+                          </label>
+                          <input id="memo" name="memo" type="text" maxlength="200" placeholder="Coffee order" autocomplete="off" spellcheck="false" aria-describedby="memoHint" />
+                          <p class="hint" id="memoHint" data-i18n="dash.memoHint">Visible to the customer on checkout.</p>
+                        </div>
+                      </div>
+                      <div class="form-foot">
+                        <p class="hint" id="createNote" data-i18n="console.createNote">Sandbox only. No real Lightning node, wallet or money is involved.</p>
+                        <button class="btn btn-primary" type="submit" id="createButton" data-i18n="dash.create">Create request</button>
+                      </div>
+                    </form>
+
+                    <div class="preview" id="preview" hidden>
+                      <div class="preview-grid">
+                        <div class="qr-frame">
+                          <canvas id="previewQr" width="232" height="232" role="img" aria-label="Lightning invoice QR code."></canvas>
+                        </div>
+                        <div>
+                          <h3 data-i18n="dash.previewTitle">Payment preview</h3>
+                          <div class="preview-amount"><span id="previewAmount">0</span><small>SAT</small></div>
+                          <p class="hint" id="previewReference"></p>
+                          <div class="invoice">
+                            <code id="previewInvoice"></code>
+                            <button class="btn btn-glass btn-sm" type="button" id="copyPreview" data-i18n="dash.copyInvoice">Copy invoice</button>
+                          </div>
+                          <div class="preview-actions">
+                            <a class="btn btn-primary btn-sm" id="openCheckout" href="#" target="_blank" rel="noopener" data-i18n="console.openCheckout" hidden>Open checkout</a>
+                            <a class="btn btn-glass btn-sm" id="openWallet" href="#" data-i18n="console.openWallet">Open wallet</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="console-status" id="createStatus" role="status" aria-live="polite"></p>
+                  </article>
+
+    <article class="dash-card payment-links-card" id="paymentLinksCard">
+      <div class="dash-card-head">
+        <div>
+          <h2 data-i18n="console.paymentLinksTitle">Payment links</h2>
+          <p data-i18n="console.paymentLinksLead">Reusable fixed-amount links that create a fresh invoice for each customer.</p>
+        </div>
+        <button class="btn btn-glass btn-sm" type="button" id="addPaymentLinkButton" data-i18n="console.newPaymentLink">New link</button>
+      </div>
+      <form id="paymentLinkForm" hidden novalidate>
+        <div class="field-grid">
+          <div class="field">
+            <label for="linkAmount" data-i18n="detail.amount">Amount</label>
+            <div class="field-control">
+              <input id="linkAmount" type="number" inputmode="numeric" min="1" max="100000000" step="1" placeholder="25000" required aria-describedby="linkAmountHint linkAmountError" />
+              <span class="field-suffix" aria-hidden="true" data-i18n="common.sats">SAT</span>
+            </div>
+            <p class="hint" id="linkAmountHint" data-i18n="dash.amountHint">Integer sats. No decimals or string coercion.</p>
+            <p class="error" id="linkAmountError" role="alert" data-i18n="dash.amountError" hidden>Enter a whole number between 1 and 100,000,000.</p>
+          </div>
+          <div class="field">
+            <label for="linkReference">
+              <span data-i18n="dash.reference">Reference</span>
+              <span class="field-optional" data-i18n="common.optional">Optional</span>
+            </label>
+            <input id="linkReference" type="text" maxlength="200" placeholder="ORDER-LINK-1" autocomplete="off" spellcheck="false" aria-describedby="linkReferenceHint" />
+            <p class="hint" id="linkReferenceHint" data-i18n="dash.referenceHint">Optional order or invoice reference.</p>
+          </div>
+          <div class="field full">
+            <label for="linkLabel">
+              <span data-i18n="console.linkLabel">Customer label</span>
+              <span class="field-optional" data-i18n="common.optional">Optional</span>
+            </label>
+            <input id="linkLabel" type="text" maxlength="120" placeholder="Coffee tasting" autocomplete="off" aria-describedby="linkLabelHint" />
+            <p class="hint" id="linkLabelHint" data-i18n="console.linkLabelHint">Shown above the amount on the hosted payment link.</p>
+          </div>
+        </div>
+        <div class="preview-actions">
+          <button class="btn btn-primary btn-sm" type="submit" id="paymentLinkSubmit" data-i18n="console.createPaymentLink">Create link</button>
+          <button class="btn btn-ghost btn-sm" type="button" id="paymentLinkCancel" data-i18n="common.cancel">Cancel</button>
+        </div>
+      </form>
+      <div class="console-new-key" id="newPaymentLinkPanel" hidden>
+        <h3 data-i18n="console.paymentLinkCreated">Payment link created</h3>
+        <p class="hint" data-i18n="console.paymentLinkOnce">Share this URL. Each visit can create a new invoice.</p>
+        <div class="invoice">
+          <code id="newPaymentLinkUrl"></code>
+          <button class="btn btn-glass btn-sm" type="button" id="copyPaymentLinkUrl" data-i18n="common.copy">Copy</button>
+        </div>
+        <div class="preview-actions">
+          <a class="btn btn-glass btn-sm" id="openPaymentLink" href="#" target="_blank" rel="noopener" data-i18n="console.openPaymentLink">Open link</a>
+        </div>
+      </div>
+      <p class="console-status" id="paymentLinkStatus" role="status" aria-live="polite"></p>
+      <ul class="console-list" id="paymentLinks"></ul>
+    </article>
+
+    <article class="dash-card reconciliation-card" id="reconciliation">
+      <div class="dash-card-head">
+        <div>
+          <h2 data-i18n="console.reconciliationTitle">Reconciliation</h2>
+          <p data-i18n="console.reconciliationLead">Store a ledger-derived snapshot for a period. Records are immutable.</p>
+        </div>
+        <span class="chip" data-env-label>Sandbox</span>
+      </div>
+      <form id="reconcileForm" novalidate>
+        <div class="field-grid">
+          <div class="field">
+            <label for="reconcileFrom" data-i18n="console.reconcileFrom">From</label>
+            <input id="reconcileFrom" name="from" type="date" required aria-describedby="reconcileNote" />
+          </div>
+          <div class="field">
+            <label for="reconcileTo" data-i18n="console.reconcileTo">To</label>
+            <input id="reconcileTo" name="to" type="date" required aria-describedby="reconcileNote" />
+          </div>
+        </div>
+        <div class="form-foot">
+          <p class="hint" id="reconcileNote" data-i18n="console.reconcileHint">Uses the local ledger; this is not a wallet balance or payout.</p>
+          <div class="form-actions">
+            <a class="btn btn-glass" href="/console/api/exports/reconciliations.csv" download data-i18n="console.exportCsv">Export CSV</a>
+            <button class="btn btn-primary" type="submit" id="reconcileSubmit" data-i18n="console.runReconciliation">Run reconciliation</button>
+          </div>
+        </div>
+      </form>
+      <p class="console-status" id="reconcileStatus" role="status" aria-live="polite"></p>
+      <div class="empty" id="reconciliationEmpty" hidden data-i18n="console.reconciliationEmpty">No stored reconciliation yet.</div>
+      <ul class="console-list" id="reconciliationList"></ul>
+    </article>
+
+    <article class="dash-card activity-card" id="payments">
+                    <div class="dash-card-head">
+                      <div>
+                        <h2 data-i18n="console.recentActivities">Recent activities</h2>
+                        <p data-i18n="console.paymentsLead">Live sandbox intents for this merchant. Select a row for the invoice and transaction.</p>
+                      </div>
+                    </div>
+                    <div class="activity-toolbar">
+                      <div class="tabs" id="filterTabs" role="group" aria-label="Filter payments">
+                        <button class="tab" type="button" data-filter="all" aria-pressed="true" data-i18n="dash.filterAll">All</button>
+                        <button class="tab" type="button" data-filter="paid" aria-pressed="false" data-i18n="dash.filterPaid">Paid</button>
+                        <button class="tab" type="button" data-filter="pending" aria-pressed="false" data-i18n="dash.filterPending">Pending</button>
+                        <button class="tab" type="button" data-filter="expired" aria-pressed="false" data-i18n="dash.filterExpired">Expired</button>
+                      </div>
+                      <label class="table-search" for="paymentSearch">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m16 16 4 4" /></svg>
+                        <input id="paymentSearch" type="search" autocomplete="off" placeholder="Search payments" data-i18n-placeholder="console.searchPlaceholder" aria-label="Search payments" data-i18n-aria-label="console.searchPayments" />
+                      </label>
+                    </div>
+                    <p class="sr-only" id="paymentsStatus" aria-live="polite"></p>
+                    <div class="table-wrap">
+                      <table class="activity-table">
+                        <thead>
+                          <tr>
+                            <th scope="col" data-i18n="dash.payment">Payment</th>
+                            <th scope="col" data-i18n="dash.activityCol">Activity</th>
+                            <th scope="col" data-i18n="dash.amountCol">Amount</th>
+                            <th scope="col" data-i18n="dash.status">Status</th>
+                            <th scope="col" data-i18n="dash.dateCol">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody id="paymentsBody"></tbody>
+                      </table>
+                    </div>
+                    <div class="empty" id="paymentsEmpty" hidden data-i18n="dash.empty">No payments match this filter yet.</div>
+                    <div class="table-more">
+                      <button class="btn btn-glass btn-sm" type="button" id="paymentsMore" data-i18n="console.loadMore" hidden>Load more</button>
+                    </div>
+                  </article>
+            </div>
+          </section>
+
+          <section class="console-page" data-console-view="developers" hidden>
+            <header class="page-heading">
+              <div>
+                <span class="eyebrow" data-i18n="console.pageDevelopersEyebrow">Developers</span>
+                <h1 data-i18n="console.pageDevelopersTitle">Keys &amp; webhooks</h1>
+                <p data-i18n="console.pageDevelopersLead">Scoped sandbox keys and delivery health for your integration.</p>
+              </div>
+            </header>
+            <div class="developers-grid">
+      <article class="dash-card keys-card" id="api-keys">
+                      <div class="dash-card-head">
+                        <div>
+                          <h2 data-i18n="console.keysTitle">API keys</h2>
+                          <p data-i18n="console.keysLead">Create scoped sandbox keys. The secret is shown once and never stored in this browser.</p>
+                        </div>
+                        <button class="btn btn-glass btn-sm" type="button" id="createKeyButton" data-i18n="console.createKey">New key</button>
+                      </div>
+                      <div class="console-key-list" id="apiKeys"></div>
+                      <div class="console-new-key" id="newKeyPanel" hidden>
+                        <h3 data-i18n="console.keyCreated">Key created</h3>
+                        <p class="hint" data-i18n="console.keyOnce">Copy it now. This value cannot be shown again.</p>
+                        <div class="invoice">
+                          <code id="newKeyValue"></code>
+                          <button class="btn btn-glass btn-sm" type="button" id="copyNewKey" data-i18n="common.copy">Copy</button>
+                        </div>
+                      </div>
+                      <form id="keyForm" hidden>
+                        <fieldset class="console-scopes">
+                          <legend>
+                            <span data-i18n="console.scopes">Scopes</span>
+                            <span class="console-scope-count" id="scopeCount" aria-live="polite"></span>
+                          </legend>
+                          <label><input type="checkbox" value="payments:read" checked /> payments:read</label>
+                          <label><input type="checkbox" value="payments:write" checked /> payments:write</label>
+                          <label><input type="checkbox" value="payments:refund" checked /> payments:refund</label>
+                          <label><input type="checkbox" value="webhooks:read" checked /> webhooks:read</label>
+                          <label><input type="checkbox" value="webhooks:write" checked /> webhooks:write</label>
+                          <label><input type="checkbox" value="keys:read" /> keys:read</label>
+                          <label><input type="checkbox" value="keys:write" /> keys:write</label>
+                          <label><input type="checkbox" value="merchants:write" /> merchants:write</label>
+                          <label><input type="checkbox" value="quotes:read" checked /> quotes:read</label>
+                        </fieldset>
+                        <div class="console-scope-toolbar">
+                          <p class="hint" data-i18n="console.scopeHint">Least privilege: keep only the scopes this integration needs.</p>
+                          <div class="console-scope-presets" role="group" aria-label="Scope presets">
+                            <button class="btn btn-glass btn-sm" type="button" data-scope-preset="recommended" data-i18n="console.scopeRecommended">Recommended</button>
+                            <button class="btn btn-glass btn-sm" type="button" data-scope-preset="all" data-i18n="console.scopeAll">All</button>
+                            <button class="btn btn-glass btn-sm" type="button" data-scope-preset="none" data-i18n="console.scopeClear">Clear</button>
+                          </div>
+                        </div>
+                        <div class="field key-expiry-field">
+                          <label for="keyExpiry" data-i18n="console.keyExpiry">Expiry</label>
+                          <select id="keyExpiry">
+                            <option value="" data-i18n="console.keyNoExpiry">No expiry</option>
+                            <option value="30" data-i18n="console.keyDays30">30 days</option>
+                            <option value="90" selected data-i18n="console.keyDays90">90 days</option>
+                            <option value="365" data-i18n="console.keyDays365">365 days</option>
+                          </select>
+                        </div>
+                        <div class="preview-actions">
+                          <button class="btn btn-primary btn-sm" type="submit" id="keySubmit" data-i18n="console.createKey">Create key</button>
+                          <button class="btn btn-ghost btn-sm" type="button" id="keyCancel" data-i18n="common.cancel">Cancel</button>
+                        </div>
+                      </form>
+                      <p class="console-status" id="keyStatus" role="status" aria-live="polite"></p>
+                    </article>
+
+      <article class="dash-card webhooks-card" id="webhooks">
+                      <div class="dash-card-head">
+                        <div>
+                          <h2 data-i18n="console.webhooksTitle">Webhook health</h2>
+                          <p data-i18n="console.webhooksLead">Endpoints and recent delivery attempts for this merchant.</p>
+                        </div>
+                        <span class="chip chip-warn" id="webhookChip" data-i18n="console.readOnly">Read only</span>
+                      </div>
+                      <div class="console-webhook-actions">
+                        <button class="btn btn-glass btn-sm" type="button" id="addWebhookButton" data-i18n="console.addEndpoint">Add endpoint</button>
+                        <p class="hint" data-i18n="console.webhookNote">Signature secret is shown once. Delivery attempts are retried in-process.</p>
+                      </div>
+                      <form id="webhookForm" hidden novalidate>
+                        <div class="field">
+                          <label for="webhookUrl" data-i18n="console.webhookUrl">HTTPS endpoint URL</label>
+                          <input id="webhookUrl" name="url" type="url" maxlength="2048" placeholder="https://example.test/webhooks/bitos-pay" autocomplete="url" spellcheck="false" required aria-describedby="webhookNote webhookUrlError" />
+                          <p class="hint" data-i18n="console.webhookUrlHint">Use a stable public endpoint. Local http is accepted for development only.</p>
+                          <p class="error" id="webhookUrlError" role="alert" data-i18n="console.webhookUrlError" hidden>Enter a valid http(s) URL.</p>
+                        </div>
+                        <fieldset class="console-scopes console-event-grid">
+                          <legend>
+                            <span data-i18n="console.webhookEvents">Events</span>
+                            <span class="console-scope-count" id="eventCount" aria-live="polite"></span>
+                          </legend>
+                          <label><input type="checkbox" value="payment.created" /> payment.created</label>
+                          <label><input type="checkbox" value="payment.pending" /> payment.pending</label>
+                          <label><input type="checkbox" value="payment.succeeded" checked /> payment.succeeded</label>
+                          <label><input type="checkbox" value="payment.failed" checked /> payment.failed</label>
+                          <label><input type="checkbox" value="payment.expired" checked /> payment.expired</label>
+                          <label><input type="checkbox" value="payment.cancelled" /> payment.cancelled</label>
+                          <label><input type="checkbox" value="payment.quarantined" /> payment.quarantined</label>
+                          <label><input type="checkbox" value="invoice.created" /> invoice.created</label>
+                          <label><input type="checkbox" value="invoice.settled" /> invoice.settled</label>
+                          <label><input type="checkbox" value="refund.succeeded" checked /> refund.succeeded</label>
+                        </fieldset>
+                        <div class="console-scope-toolbar">
+                          <p class="hint" data-i18n="console.webhookEventsHint">Only subscribe to events this endpoint can handle.</p>
+                          <div class="console-scope-presets" role="group" aria-label="Event presets">
+                            <button class="btn btn-glass btn-sm" type="button" data-event-preset="recommended" data-i18n="console.scopeRecommended">Recommended</button>
+                            <button class="btn btn-glass btn-sm" type="button" data-event-preset="all" data-i18n="console.scopeAll">All</button>
+                            <button class="btn btn-glass btn-sm" type="button" data-event-preset="none" data-i18n="console.scopeClear">Clear</button>
+                          </div>
+                        </div>
+                        <div class="preview-actions">
+                          <button class="btn btn-primary btn-sm" type="submit" id="webhookSubmit" data-i18n="console.addEndpoint">Add endpoint</button>
+                          <button class="btn btn-ghost btn-sm" type="button" id="webhookCancel" data-i18n="common.cancel">Cancel</button>
+                        </div>
+                      </form>
+                      <div class="console-new-key" id="newWebhookPanel" hidden>
+                        <h3 id="newWebhookTitle" data-i18n="console.endpointCreated">Endpoint created</h3>
+                        <p class="hint" data-i18n="console.webhookSecretOnce">Copy the signing secret now. It cannot be shown again.</p>
+                        <div class="invoice">
+                          <code id="newWebhookSecret"></code>
+                          <button class="btn btn-glass btn-sm" type="button" id="copyWebhookSecret" data-i18n="common.copy">Copy</button>
+                        </div>
+                      </div>
+                      <p class="console-status" id="webhookStatus" role="status" aria-live="polite"></p>
+                      <div class="console-split">
+                        <div>
+                          <h3 data-i18n="console.endpoints">Endpoints</h3>
+                          <ul class="console-list" id="webhookEndpoints"></ul>
+                        </div>
+                        <div>
+                          <h3 data-i18n="console.deliveries">Recent deliveries</h3>
+                          <ul class="console-list" id="webhookDeliveries"></ul>
+                        </div>
+                      </div>
+                    </article>
+            </div>
+
+            <article class="dash-card quickstart-card">
+              <div class="dash-card-head">
+                <div>
+                  <h2 data-i18n="console.quickstartTitle">Quickstart</h2>
+                  <p data-i18n="console.quickstartLead">Three calls from sandbox key to verified webhook.</p>
+                </div>
+                <span class="chip">HTTP · JSON</span>
+              </div>
+              <div class="quickstart-grid">
+                <section class="quickstart-step">
+                  <span class="step-index">01</span>
+                  <h3 data-i18n="console.stepCreate">Create an intent</h3>
+                  <pre><code>curl -X POST "$BITOS_PAY_URL/v1/payment-intents" \
+  -H "authorization: Bearer $BITOS_PAY_API_KEY" \
+  -H "content-type: application/json" \
+  -H "idempotency-key: order-1042" \
+  -d '{"amount":12500,"currency":"SAT","scale":0,"payment_method":"lightning"}'</code></pre>
+                </section>
+                <section class="quickstart-step">
+                  <span class="step-index">02</span>
+                  <h3 data-i18n="console.stepRead">Read the intent</h3>
+                  <pre><code>curl "$BITOS_PAY_URL/v1/payment-intents/pi_..." \
+  -H "authorization: Bearer $BITOS_PAY_API_KEY"</code></pre>
+                  <p class="hint" data-i18n="console.stepReadHint">Treat the invoice and payment hash as opaque strings.</p>
+                </section>
+                <section class="quickstart-step">
+                  <span class="step-index">03</span>
+                  <h3 data-i18n="console.stepVerify">Verify the webhook</h3>
+                  <pre><code>const signed = `${timestamp}.${rawBody}`;
+const expected = hmacSha256(secret, signed);
+// compare with BitOS-Pay-Signature: v1=...
+// reject timestamps older than 5 minutes</code></pre>
+                  <p class="hint" data-i18n="console.stepVerifyHint">Verify before parsing, deduplicate by event id, return 2xx quickly.</p>
+                </section>
+              </div>
+            </article>
+
+            <article class="dash-card api-reference-card" id="apiReference">
+              <div class="dash-card-head">
+                <div>
+                  <h2 data-i18n="console.apiReferenceTitle">API reference</h2>
+                  <p data-i18n="console.apiReferenceLead">Generated from the live OpenAPI document. Search by path, method or summary.</p>
+                </div>
+                <div class="api-reference-actions">
+                  <a class="btn btn-glass btn-sm" href="/openapi.json" target="_blank" rel="noopener" data-i18n="console.openOpenApi">OpenAPI JSON</a>
+                  <button class="btn btn-ghost btn-sm" type="button" id="copyOpenApiUrl" data-i18n="common.copy">Copy</button>
+                </div>
+              </div>
+              <label class="table-search api-reference-search" for="apiReferenceSearch">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m16 16 4 4" /></svg>
+                <input id="apiReferenceSearch" type="search" autocomplete="off" placeholder="Search endpoints" data-i18n-placeholder="console.apiReferenceSearch" aria-label="Search API endpoints" data-i18n-aria-label="console.apiReferenceSearch" />
+              </label>
+              <div class="api-reference-meta">
+                <span id="apiReferenceCount">—</span>
+                <span aria-hidden="true">·</span>
+                <span data-i18n="console.apiReferenceAuth">Bearer API key · scopes per endpoint</span>
+              </div>
+              <p class="console-status" id="apiReferenceStatus" role="status" aria-live="polite"></p>
+              <div class="api-reference-groups" id="apiReferenceGroups"></div>
+            </article>
+          </section>
+
+          <section class="console-page" data-console-view="settings" hidden>
+            <header class="page-heading">
+              <div>
+                <span class="eyebrow" data-i18n="console.pageSettingsEyebrow">Workspace</span>
+                <h1 data-i18n="console.pageSettingsTitle">Plan &amp; settings</h1>
+                <p data-i18n="console.pageSettingsLead">Entitlement, signer and reference session controls.</p>
+              </div>
+            </header>
+            <div class="settings-grid">
+              <div class="settings-col">
+      <article class="dash-card plan-card" id="planCard">
+                      <div class="dash-card-head">
+                        <div>
+                          <h2 data-i18n="console.planTitle">Organization plan</h2>
+                          <p data-i18n="console.planLead">Features are gated by the Pay entitlement, not by your role.</p>
+                        </div>
+                        <span class="chip" id="planChip">—</span>
+                      </div>
+                      <div class="settlement-list">
+                        <div class="settlement-row"><span data-i18n="console.planName">Plan</span><strong id="planName">—</strong></div>
+                        <div class="settlement-row"><span data-i18n="console.planRevision">Revision</span><strong id="planRevision">0</strong></div>
+                      </div>
+                      <p class="hint" id="planLimits"></p>
+                      <div class="preview-actions" id="planUpgradeActions">
+                        <button class="btn btn-glass btn-sm" type="button" data-plan="workspace_pro" data-i18n="console.planUpgradePro">Upgrade Pro</button>
+                        <button class="btn btn-glass btn-sm" type="button" data-plan="workspace_business" data-i18n="console.planUpgradeBusiness">Upgrade Business</button>
+                      </div>
+                      <div class="console-plan-invoice" id="planInvoicePanel" hidden>
+                        <div class="qr-frame"><canvas id="planQr" width="232" height="232" role="img" aria-label="Plan invoice QR code."></canvas></div>
+                        <p class="hint" id="planInvoiceStatus"></p>
+                        <div class="preview-actions">
+                          <button class="btn btn-primary btn-sm" type="button" id="planSettle" data-i18n="console.planSimulate">Simulate sandbox payment</button>
+                          <button class="btn btn-ghost btn-sm" type="button" id="planCancel" data-i18n="common.cancel">Cancel</button>
+                        </div>
+                      </div>
+                      <p class="console-status" id="planStatus" role="status" aria-live="polite"></p>
+                    </article>
+
+                    <article class="dash-card profile-card" id="profileCard">
+                      <div class="dash-card-head">
+                        <div>
+                          <h2 data-i18n="console.profileTitle">Business profile</h2>
+                          <p data-i18n="console.profileLead">Merchant name and support details used by the console and checkout.</p>
+                        </div>
+                        <span class="chip" id="profileStatus">—</span>
+                      </div>
+                      <form id="profileForm" novalidate>
+                        <div class="field">
+                          <label for="profileName" data-i18n="console.profileName">Merchant name</label>
+                          <input id="profileName" type="text" maxlength="120" autocomplete="organization" required aria-describedby="profileNameHint profileNameError" />
+                          <p class="hint" id="profileNameHint" data-i18n="console.profileNameHint">Shown to customers on checkout and receipts.</p>
+                          <p class="error" id="profileNameError" role="alert" data-i18n="console.profileInvalid" hidden>Enter a merchant name between 1 and 120 characters.</p>
+                        </div>
+                        <div class="field-grid">
+                          <div class="field">
+                            <label for="profileEmail">
+                              <span data-i18n="console.profileEmail">Support email</span>
+                              <span class="field-optional" data-i18n="common.optional">Optional</span>
+                            </label>
+                            <input id="profileEmail" type="email" maxlength="254" autocomplete="email" inputmode="email" spellcheck="false" aria-describedby="profileEmailHint" />
+                            <p class="hint" id="profileEmailHint" data-i18n="console.profileEmailHint">Used for payment support, never for marketing.</p>
+                          </div>
+                          <div class="field">
+                            <label for="profileWebsite">
+                              <span data-i18n="console.profileWebsite">Website</span>
+                              <span class="field-optional" data-i18n="common.optional">Optional</span>
+                            </label>
+                            <input id="profileWebsite" type="url" maxlength="2048" placeholder="https://" autocomplete="url" spellcheck="false" aria-describedby="profileWebsiteHint" />
+                            <p class="hint" id="profileWebsiteHint" data-i18n="console.profileWebsiteHint">Use a full https:// address.</p>
+                          </div>
+                        </div>
+                        <p class="hint" id="profileNote" data-i18n="console.profileNote">Verification state is read-only. Live capability requires an explicit activation.</p>
+                        <div class="preview-actions">
+                          <button class="btn btn-primary btn-sm" type="submit" id="profileSave" data-i18n="console.profileSave">Save profile</button>
+                        </div>
+                        <p class="console-status" id="profileStatusMessage" role="status" aria-live="polite"></p>
+                      </form>
+                    </article>
+
+                    <article class="dash-card locations-card" id="locationsCard">
+                      <div class="dash-card-head">
+                        <div>
+                          <h2 data-i18n="console.locationsTitle">Locations</h2>
+                          <p data-i18n="console.locationsLead">Branches available for payment requests. Codes are unique per merchant.</p>
+                        </div>
+                        <span class="chip" id="locationsChip">—</span>
+                      </div>
+                      <form id="locationForm" novalidate>
+                        <div class="field-grid">
+                          <div class="field">
+                            <label for="locationName" data-i18n="console.locationName">Name</label>
+                            <input id="locationName" type="text" maxlength="120" placeholder="Riverside" autocomplete="organization" required aria-describedby="locationNameHint" />
+                            <p class="hint" id="locationNameHint" data-i18n="console.locationNameHint">A short branch or counter name.</p>
+                          </div>
+                          <div class="field">
+                            <label for="locationCode" data-i18n="console.locationCode">Code</label>
+                            <input id="locationCode" type="text" maxlength="24" placeholder="RIVER" pattern="[A-Za-z0-9_-]{2,24}" autocomplete="off" autocapitalize="characters" spellcheck="false" required aria-describedby="locationCodeHint locationError" />
+                            <p class="hint" id="locationCodeHint" data-i18n="console.locationCodeHint">2-24 letters, digits, _ or -. Unique per merchant.</p>
+                            <p class="error" id="locationError" role="alert" data-i18n="console.locationInvalid" hidden>Enter a name and a 2-24 character code.</p>
+                          </div>
+                        </div>
+                        <div class="preview-actions">
+                          <button class="btn btn-primary btn-sm" type="submit" id="locationSubmit" data-i18n="console.addLocation">Add location</button>
+                        </div>
+                        <p class="console-status" id="locationStatus" role="status" aria-live="polite"></p>
+                      </form>
+                      <ul class="console-list" id="locationList"></ul>
+                    </article>
+
+                    <article class="dash-card team-card" id="teamCard">
+                      <div class="dash-card-head">
+                        <div>
+                          <h2 data-i18n="console.teamTitle">Team</h2>
+                          <p data-i18n="console.teamLead">Invite a Nostr signer with a preset scope set. No email or password is created.</p>
+                        </div>
+                        <span class="chip" id="teamChip">—</span>
+                      </div>
+                      <form id="memberForm" novalidate>
+                        <div class="field">
+                          <label for="memberPubkey" data-i18n="console.memberPubkey">Nostr public key</label>
+                          <input id="memberPubkey" type="text" maxlength="64" pattern="[0-9a-fA-F]{64}" placeholder="64-character hex public key" autocomplete="off" autocapitalize="off" spellcheck="false" required aria-describedby="memberPubkeyHint memberPubkeyError" />
+                          <p class="hint" id="memberPubkeyHint" data-i18n="console.memberPubkeyHint">The signer must use this key in NIP-07 or a remote signer.</p>
+                          <p class="error" id="memberPubkeyError" role="alert" data-i18n="console.memberPubkeyError" hidden>Enter a 64-character hex public key.</p>
+                        </div>
+                        <div class="field-grid">
+                          <div class="field">
+                            <label for="memberRole" data-i18n="console.memberRole">Role</label>
+                            <select id="memberRole">
+                              <option value="ADMIN" data-i18n="console.roleAdmin">Admin</option>
+                              <option value="MANAGER" data-i18n="console.roleManager">Manager</option>
+                              <option value="CASHIER" selected data-i18n="console.roleCashier">Cashier</option>
+                              <option value="VIEWER" data-i18n="console.roleViewer">Viewer</option>
+                            </select>
+                          </div>
+                          <div class="field">
+                            <label for="memberLabel" data-i18n="console.memberLabel">Label</label>
+                            <input id="memberLabel" type="text" maxlength="80" placeholder="Front desk" />
+                          </div>
+                        </div>
+                        <div class="preview-actions">
+                          <button class="btn btn-primary btn-sm" type="submit" id="memberSubmit" data-i18n="console.inviteMember">Invite member</button>
+                        </div>
+                        <p class="console-status" id="memberStatus" role="status" aria-live="polite"></p>
+                      </form>
+                      <ul class="console-list" id="memberList"></ul>
+                    </article>
+
+                    <article class="dash-card workspace-card">
+                      <div class="dash-card-head">
+                        <div>
+                          <h2 data-i18n="console.workspaceTitle">Workspace details</h2>
+                          <p data-i18n="console.workspaceLead">Read-only identifiers for this reference session.</p>
+                        </div>
+                        <span class="chip chip-brand" data-env-label>Sandbox</span>
+                      </div>
+                      <div class="details-list">
+                        <div class="details-row"><span data-i18n="console.workspaceOrg">Organization</span><code id="workspaceOrg">—</code></div>
+                        <div class="details-row"><span data-i18n="console.workspaceMerchant">Merchant</span><code id="workspaceMerchant">—</code></div>
+                        <div class="details-row"><span data-i18n="console.workspaceBase">API origin</span><code id="workspaceBase">—</code></div>
+                        <div class="details-row"><span data-i18n="console.workspaceLive">Live access</span><strong class="details-lock" id="workspaceLiveValue">Disabled</strong></div>
+                      </div>
+                    </article>
+              </div>
+
+              <div class="settings-col">
+                        <article class="dash-card routing-card" id="routingCard">
+                          <div class="dash-card-head">
+                            <div>
+                              <h2 data-i18n="console.routingTitle">Payment routing</h2>
+                              <p data-i18n="console.routingLead">Adapter selected for this workspace.</p>
+                            </div>
+                            <span class="chip" id="routingChip">—</span>
+                          </div>
+                          <div class="details-list" id="routingList"></div>
+                          <p class="hint" data-i18n="console.routingNote">Read-only reference. Merchant-managed node/provider connections, failover and credential rotation are planned.</p>
+                        </article>
+
+        <article class="dash-card session-card" id="sessionCard">
+                          <div class="dash-card-head">
+                            <div>
+                              <h2 data-i18n="console.session">Session</h2>
+                              <p data-i18n="console.sessionLead">HttpOnly cookie · CSRF protected writes</p>
+                            </div>
+                          </div>
+                          <div class="session-grid">
+                            <div class="settlement-row"><span data-i18n="console.sessionAuth">Signer</span><strong id="sessionAuth">—</strong></div>
+                            <div class="settlement-row"><span data-i18n="console.expires">Expires</span><strong id="sessionExpiry">—</strong></div>
+                            <div class="settlement-row"><span data-i18n="console.scopes">Scopes</span><strong id="sessionScopeCount">0</strong></div>
+                          </div>
+                          <p class="hint" id="sessionScopes"></p>
+                          <div class="console-security">
+                            <strong data-i18n="console.referenceNoteTitle">Reference session, not production auth</strong>
+                            <p data-i18n="console.referenceNote">This sandbox console accepts a Nostr signer or an API key. MFA, staff roles and production custody remain planned.</p>
+                          </div>
+                        </article>
+
+        <article class="dash-card nostr-card" id="nostrCard">
+                          <div class="dash-card-head">
+                            <div>
+                              <h2 data-i18n="console.nostrTitle">Nostr sign-in</h2>
+                              <p data-i18n="console.nostrLead">Link a NIP-07 key to sign in without pasting an API key.</p>
+                            </div>
+                          </div>
+                          <p class="hint" id="nostrAuthState" data-i18n="console.nostrLinkHint">Sign in with an API key, then link this browser's Nostr key.</p>
+                          <p class="hint" id="nostrPubkey"></p>
+                          <button class="btn btn-glass btn-sm" type="button" id="linkNostrButton" hidden data-i18n="console.nostrLink">Link Nostr key</button>
+                          <div class="console-nsec-panel" id="nsecLinkPanel" hidden>
+                            <div class="field">
+                              <label for="linkNsecKey" data-i18n="console.nsecLabel">nsec key</label>
+                              <input id="linkNsecKey" type="password" autocomplete="off" spellcheck="false" placeholder="nsec1…" />
+                            </div>
+                            <button class="btn btn-glass btn-sm" type="button" id="linkNsecButton" data-i18n="console.nsecLink">Link nsec</button>
+                            <p class="hint" id="nsecLinkHint" hidden data-i18n="console.nsecDisabled">Local nsec login is disabled. Set PAY_CONSOLE_ALLOW_NSEC=1 and restart the server.</p>
+                          </div>
+                          <div class="console-remote-panel" id="remoteLinkPanel">
+                            <div class="field">
+                              <label for="linkBunkerUrl" data-i18n="console.remoteLabel">Bunker URL</label>
+                              <input id="linkBunkerUrl" type="password" autocomplete="off" spellcheck="false" placeholder="bunker://…" />
+                            </div>
+                            <div class="preview-actions">
+                              <button class="btn btn-glass btn-sm" type="button" id="linkRemoteButton" data-i18n="console.remoteLink">Link remote signer</button>
+                              <button class="btn btn-ghost btn-sm" type="button" id="linkRemoteQrButton" data-i18n="console.remoteQr">Show QR</button>
+                            </div>
+                            <p class="hint" id="remoteLinkHint" hidden data-i18n="console.remoteDisabled">Remote signing is disabled. Set PAY_CONSOLE_NOSTR_RELAY=wss://… and restart the server.</p>
+                            <div class="console-remote-qr" id="linkRemoteQrPanel" hidden>
+                              <div class="qr-frame"><canvas id="linkRemoteQr" width="232" height="232" role="img" aria-label="NIP-46 connection QR."></canvas></div>
+                              <p class="hint" id="linkRemoteQrStatus" data-i18n="console.remoteQrWait">Scan with a NIP-46 signer and approve the connection.</p>
+                              <button class="btn btn-ghost btn-sm" type="button" id="linkRemoteQrCancel" data-i18n="common.cancel">Cancel</button>
+                            </div>
+                          </div>
+                          <p class="console-status" id="nostrLinkStatus" role="status" aria-live="polite"></p>
+                          <p class="hint" data-i18n="console.nostrSafety">NIP-07 signs a one-time challenge. No nsec, private key or signature secret is stored by this console.</p>
+                        </article>
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <footer class="console-foot">
+      <span data-i18n="console.footer">BitOS Pay reference console · sandbox data only</span>
+      <span class="mono">v0.1</span>
+    </footer>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" hidden>
+    <div class="drawer-head">
+      <div>
+        <span class="eyebrow" data-i18n="detail.eyebrow">Payment detail</span>
+        <h2 id="drawerTitle" data-i18n="detail.title">Payment detail</h2>
+      </div>
+      <button class="drawer-close" type="button" id="drawerClose" aria-label="Close" data-i18n-aria-label="common.close">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="scripts/storage.js"></script>
+  <script src="scripts/i18n.js"></script>
+  <script src="scripts/ui.js"></script>
+  <script src="scripts/qr.js"></script>
+  <script src="scripts/nostr-signer.js"></script>
+  <script src="scripts/console.js"></script>
+</body>
+</html>

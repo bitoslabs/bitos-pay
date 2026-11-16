@@ -1,0 +1,48 @@
+import type { PayConfig } from "../config.ts";
+import type { ApiKeyService } from "../application/api-key-service.ts";
+import type { AuthService } from "../application/auth-service.ts";
+import type { CheckoutService } from "../application/checkout-service.ts";
+import type { ConsoleSessionService } from "../application/console-session-service.ts";
+import type { NostrAuthService } from "../application/nostr-auth-service.ts";
+import type { OnboardingService } from "../application/onboarding-service.ts";
+import type { LedgerQueryService } from "../application/ledger-query-service.ts";
+import type { LocationService } from "../application/location-service.ts";
+import type { PaymentIntentService } from "../application/payment-intent-service.ts";
+import type { PaymentLinkService } from "../application/payment-link-service.ts";
+import type { MerchantProfileService } from "../application/merchant-profile-service.ts";
+import type { MemberService } from "../application/member-service.ts";
+import type { PlanService } from "../application/plan-service.ts";
+import type { ProviderConnectionService } from "../application/provider-connection-service.ts";
+import type { QuoteService } from "../application/quote-service.ts";
+import type { RefundService } from "../application/refund-service.ts";
+import type { RiskService } from "../application/risk-service.ts";
+import type { SettlementReportingService } from "../application/settlement-reporting-service.ts";
+import type { SettlementService } from "../application/settlement-service.ts";
+import type { WebhookService } from "../application/webhook-service.ts";
+
+export interface AppDependencies {
+  config: PayConfig;
+  auth: AuthService;
+  consoleSessions: ConsoleSessionService;
+  nostrAuth: NostrAuthService;
+  onboarding: OnboardingService;
+  paymentIntents: PaymentIntentService;
+  locations: LocationService;
+  paymentLinks: PaymentLinkService;
+  merchantProfiles: MerchantProfileService;
+  members: MemberService;
+  checkout: CheckoutService;
+  plans: PlanService;
+  providerConnections: ProviderConnectionService;
+  settlements: SettlementService;
+  ledgerQuery: LedgerQueryService;
+  webhooks: WebhookService;
+  apiKeys: ApiKeyService;
+  quotes: QuoteService;
+  refunds: RefundService;
+  risk: RiskService;
+  settlementReports: SettlementReportingService;
+  ready: () => Promise<boolean>;
+  sandboxEnabled: boolean;
+  sandboxToken: string | null;
+}

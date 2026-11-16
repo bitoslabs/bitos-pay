@@ -1,0 +1,31 @@
+{
+  "name": "@bitos/pay-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "BitOS Pay reference core (Fastify): payment intents, Lightning adapter boundary, double-entry ledger, idempotency and signed webhooks.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --watch src/main/server.ts",
+    "start": "node --env-file-if-exists=.env src/main/server.ts",
+    "migrate": "node --env-file-if-exists=.env src/main/migrate.ts",
+    "seed": "node --env-file-if-exists=.env src/main/seed.ts",
+    "test": "node --test test/*.test.ts",
+    "test:integration": "node --env-file-if-exists=.env --test test/integration.test.ts",
+    "typecheck": "tsc --noEmit",
+    "check:structure": "node scripts/check-boundaries.mjs"
+  },
+  "dependencies": {
+    "@noble/curves": "^2.4.0",
+    "fastify": "^5.12.8",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.11",
+    "@types/node": "24.19.2",
+    "@types/pg": "^8.15.6",
+    "typescript": "5.9.3"
+  }
+}
