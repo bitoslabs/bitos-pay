@@ -12,7 +12,8 @@ export interface CreateAppOptions {
 const CHECKOUT_SECURITY_POLICY = [
   "default-src 'none'",
   "script-src 'self'",
-  "style-src 'self'",
+  "style-src 'self' https://fonts.mts.la",
+  "font-src 'self' https://fonts.mts.la",
   "img-src 'self' data:",
   "connect-src 'self'",
   "base-uri 'none'",
@@ -28,9 +29,9 @@ function consoleSecurityPolicy(deps: AppDependencies): string {
   return [
     "default-src 'none'",
     "script-src 'self'",
-    "style-src 'self'",
+    "style-src 'self' https://fonts.mts.la",
     "img-src 'self' data:",
-    "font-src 'self'",
+    "font-src 'self' https://fonts.mts.la",
     `connect-src ${connect.join(" ")}`,
     "worker-src 'self'",
     "base-uri 'none'",
