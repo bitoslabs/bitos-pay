@@ -1227,13 +1227,15 @@
     return VIEWS.has(value) ? value : "overview";
   }
 
-  function setActiveNav(view) {
+  function setActiveNav(view, scrollTo) {
     document.querySelectorAll(".console-tabs a[data-view]").forEach((link) => {
       if (link.dataset.view === view) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
-    document.querySelectorAll(".console-rail .rail-link[data-nav]").forEach((link) => {
-      link.classList.toggle("is-active", link.dataset.nav === view);
+    document.querySelectorAll(".console-rail .rail-link").forEach((link) => {
+      const matchesScroll = Boolean(scrollTo && link.dataset.scrollTo === scrollTo);
+      const matchesView = !scrollTo && link.dataset.nav === view;
+      link.classList.toggle("is-active", matchesScroll || matchesView);
     });
   }
 
@@ -1242,11 +1244,11 @@
     document.querySelectorAll("[data-console-view]").forEach((page) => {
       page.hidden = page.dataset.consoleView !== safe;
     });
-    setActiveNav(safe);
     const focus = state.pendingFocus;
     const scrollTo = state.pendingScroll;
     state.pendingFocus = null;
     state.pendingScroll = null;
+    setActiveNav(safe, scrollTo);
     if (options.scroll !== false) {
       const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
       if (scrollTo) {
@@ -2399,6 +2401,8 @@
   function openDrawer(payment, trigger) {
     state.lastTrigger = trigger || null;
     window.clearTimeout(state.closeTimer);
+    const drawerTitle = document.getElementById("drawerTitle");
+    if (drawerTitle) drawerTitle.textContent = t("detail.title");
     els.drawerBody.innerHTML = renderDrawer(payment);
     els.drawer.hidden = false;
     els.drawerBackdrop.hidden = false;
@@ -2836,6 +2840,14 @@
 
   document.getElementById("topSearch").addEventListener("click", () => {
     navigateTo("payments", { focus: "paymentSearch", scrollTo: "payments" });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (!state.session || state.drawerOpen) return;
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      navigateTo("payments", { focus: "paymentSearch", scrollTo: "payments" });
+    }
   });
 
   document.getElementById("helpButton").addEventListener("click", () => {
