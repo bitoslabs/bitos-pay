@@ -1036,6 +1036,10 @@ body[data-page="console"] .console-icon svg {
 }
 
 .console-theme-top {
+  display: none;
+}
+
+body:not(.is-authenticated) .console-theme-top {
   display: grid;
 }
 
@@ -1120,33 +1124,40 @@ body:not(.is-authenticated) .console-tabs {
 
 .console-rail {
   position: sticky;
-  top: 96px;
+  top: 90px;
   align-self: start;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
   width: 64px;
   height: auto;
-  margin: 18px auto 0;
-  padding: 12px 0;
+  margin: 14px auto 0;
+  padding: 0;
   border: 0;
-  border-radius: 34px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rail-group {
+  display: grid;
+  gap: 6px;
+  width: 58px;
+  padding: 8px 0;
+  justify-items: center;
+  border-radius: 32px;
   background: var(--card);
   box-shadow: 0 18px 42px -32px rgba(0, 0, 0, 0.55);
 }
 
 .rail-tools {
-  display: grid;
-  gap: 6px;
-  width: 100%;
-  margin-bottom: 2px;
-  padding-bottom: 4px;
+  margin-bottom: 0;
+  padding-bottom: 8px;
 }
 
 .rail-nav {
   display: grid;
-  gap: 7px;
+  gap: 6px;
 }
 
 .rail-tool {
@@ -3112,4 +3123,80 @@ body.drawer-open {
   .key-health-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Production UX: In-app confirmation modal & clickable alert chips */
+.chip-action {
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 0.15s, filter 0.15s;
+}
+
+.chip-action:hover,
+.chip-action:focus-visible {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(8, 10, 14, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+.confirm-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 61;
+  width: min(420px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+  display: grid;
+  gap: 10px;
+}
+
+.confirm-dialog[hidden],
+.confirm-backdrop[hidden] {
+  display: none;
+}
+
+.confirm-dialog h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.confirm-dialog p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.45;
+}
+
+.confirm-meta {
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  border: 1px solid var(--line);
+  font: 500 12px var(--font-mono);
+  color: var(--t1);
+  word-break: break-all;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-danger {
+  background: var(--bad, #ef4444);
+  color: #fff;
 }

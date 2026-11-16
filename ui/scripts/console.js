@@ -436,13 +436,76 @@
     }
   }
 
+  function confirmAction({
+    title = "Confirm action",
+    message = "",
+    meta = "",
+    confirmLabel = "Confirm",
+    destructive = false
+  } = {}) {
+    const dialog = document.getElementById("confirmDialog");
+    const backdrop = document.getElementById("confirmBackdrop");
+    const titleEl = document.getElementById("confirmTitle");
+    const msgEl = document.getElementById("confirmMessage");
+    const metaEl = document.getElementById("confirmMeta");
+    const cancelBtn = document.getElementById("confirmCancel");
+    const okBtn = document.getElementById("confirmOk");
+    if (!dialog || !backdrop) return Promise.resolve(window.confirm(message));
+
+    const previousFocus = document.activeElement;
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    if (meta) {
+      metaEl.textContent = meta;
+      metaEl.hidden = false;
+    } else {
+      metaEl.hidden = true;
+    }
+    okBtn.textContent = confirmLabel;
+    okBtn.className = `btn btn-sm ${destructive ? "btn-danger" : "btn-primary"}`;
+    dialog.hidden = false;
+    backdrop.hidden = false;
+    cancelBtn.focus();
+
+    return new Promise((resolve) => {
+      function cleanup(result) {
+        dialog.hidden = true;
+        backdrop.hidden = true;
+        cancelBtn.removeEventListener("click", onCancel);
+        okBtn.removeEventListener("click", onOk);
+        backdrop.removeEventListener("click", onCancel);
+        document.removeEventListener("keydown", onKey);
+        if (previousFocus && typeof previousFocus.focus === "function" && document.contains(previousFocus)) {
+          previousFocus.focus();
+        }
+        resolve(result);
+      }
+      function onCancel() {
+        cleanup(false);
+      }
+      function onOk() {
+        cleanup(true);
+      }
+      function onKey(e) {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          cleanup(false);
+        }
+      }
+      cancelBtn.addEventListener("click", onCancel);
+      okBtn.addEventListener("click", onOk);
+      backdrop.addEventListener("click", onCancel);
+      document.addEventListener("keydown", onKey);
+    });
+  }
+
   async function selectConsoleMode(mode) {
     if (!consoleModes().includes(mode) || mode === state.consoleMode) return;
     if (state.session) {
       const message = mode === "live"
         ? t("console.switchLiveConfirm")
         : t("console.switchSandboxConfirm");
-      if (!window.confirm(message)) return;
+      if (!(await confirmAction({ title: "Switch environment", message, confirmLabel: "Switch" }))) return;
       try {
         await api("/console/api/session", { method: "DELETE" });
       } catch {
@@ -1228,8 +1291,10 @@
   }
 
   function setActiveNav(view, scrollTo) {
-    document.querySelectorAll(".console-tabs a[data-view]").forEach((link) => {
-      if (link.dataset.view === view) link.setAttribute("aria-current", "page");
+    document.querySelectorAll(".console-tabs a").forEach((link) => {
+      const matchesScroll = Boolean(scrollTo && link.dataset.tabScroll === scrollTo);
+      const matchesView = !scrollTo && link.dataset.view === view;
+      if (matchesScroll || matchesView) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
     document.querySelectorAll(".console-rail .rail-link").forEach((link) => {
@@ -1459,19 +1524,19 @@
     const alerts = health.alerts || {};
     const alertChips = [];
     if (alerts.quarantined_payments > 0) {
-      alertChips.push(`<span class="chip chip-warn">${escapeHtml(String(alerts.quarantined_payments))} quarantined</span>`);
+      alertChips.push(`<button type="button" class="chip chip-warn chip-action" data-alert-action="quarantined">${escapeHtml(String(alerts.quarantined_payments))} quarantined</button>`);
     }
     if (alerts.dead_webhooks > 0) {
-      alertChips.push(`<span class="chip chip-warn">${escapeHtml(String(alerts.dead_webhooks))} dead webhooks</span>`);
+      alertChips.push(`<button type="button" class="chip chip-warn chip-action" data-alert-action="dead_webhooks">${escapeHtml(String(alerts.dead_webhooks))} dead webhooks</button>`);
     }
     if (alerts.degraded_connections > 0) {
-      alertChips.push(`<span class="chip chip-warn">${escapeHtml(String(alerts.degraded_connections))} degraded provider</span>`);
+      alertChips.push(`<button type="button" class="chip chip-warn chip-action" data-alert-action="degraded_connections">${escapeHtml(String(alerts.degraded_connections))} degraded provider</button>`);
     }
     if (alerts.expiring_keys > 0) {
-      alertChips.push(`<span class="chip chip-warn">${escapeHtml(String(alerts.expiring_keys))} expiring keys</span>`);
+      alertChips.push(`<button type="button" class="chip chip-warn chip-action" data-alert-action="expiring_keys">${escapeHtml(String(alerts.expiring_keys))} expiring keys</button>`);
     }
     if (alerts.stale_keys > 0) {
-      alertChips.push(`<span class="chip">${escapeHtml(String(alerts.stale_keys))} unused keys</span>`);
+      alertChips.push(`<button type="button" class="chip chip-action" data-alert-action="stale_keys">${escapeHtml(String(alerts.stale_keys))} unused keys</button>`);
     }
     els.healthAlertChips.innerHTML = alertChips.join("");
     els.healthAlertBanner.hidden = alertChips.length === 0;
@@ -1839,11 +1904,12 @@
     els.webhookDeliveries.innerHTML = webhooks.deliveries.length
       ? webhooks.deliveries
           .map((delivery) => {
+            const inspect = `<button class="btn btn-glass btn-sm" type="button" data-inspect-delivery="${escapeHtml(delivery.id)}">${escapeHtml(t("console.keyInspect"))}</button>`;
             const replay = canManage
               ? ` <button class="btn btn-ghost btn-sm" type="button" data-replay-delivery="${escapeHtml(delivery.id)}">${escapeHtml(t("console.replay"))}</button>`
               : "";
             return `
-              <li><strong>${escapeHtml(delivery.status)}</strong> · ${escapeHtml(delivery.event_type)} · attempt ${escapeHtml(String(delivery.attempt))}${replay}</li>
+              <li><strong>${escapeHtml(delivery.status)}</strong> · ${escapeHtml(delivery.event_type)} · attempt ${escapeHtml(String(delivery.attempt))} ${inspect}${replay}</li>
             `;
           })
           .join("")
@@ -2398,6 +2464,65 @@
     }
   }
 
+  function openDeliveryInspector(deliveryId, trigger) {
+    const deliveries = state.overview?.webhooks?.deliveries || [];
+    const d = deliveries.find((item) => item.id === deliveryId);
+    if (!d) return;
+    state.lastTrigger = trigger || null;
+    window.clearTimeout(state.closeTimer);
+    const drawerTitle = document.getElementById("drawerTitle");
+    if (drawerTitle) drawerTitle.textContent = "Webhook delivery";
+    const canManage = hasScope("webhooks:write");
+    const statusClass = d.status === "DELIVERED" ? "chip-ok" : d.status === "DEAD" || d.status === "FAILED" ? "chip-warn" : "";
+    els.drawerBody.innerHTML = `
+      <div class="detail-section">
+        <div class="settlement-row"><span>Status</span><span class="chip ${statusClass}">${escapeHtml(d.status)}</span></div>
+        <div class="settlement-row"><span>Delivery ID</span><code class="mono">${escapeHtml(d.id)}</code></div>
+        <div class="settlement-row"><span>Event ID</span><code class="mono">${escapeHtml(d.event_id)}</code></div>
+        <div class="settlement-row"><span>Event type</span><code class="mono">${escapeHtml(d.event_type)}</code></div>
+        <div class="settlement-row"><span>Attempts</span><strong>${escapeHtml(String(d.attempt))}</strong></div>
+        <div class="settlement-row"><span>Response code</span><strong class="mono">${escapeHtml(d.response_code != null ? String(d.response_code) : "—")}</strong></div>
+        <div class="settlement-row"><span>Next attempt</span><strong>${escapeHtml(d.next_attempt_at ? formatDateTime(d.next_attempt_at) : "—")}</strong></div>
+        <div class="settlement-row"><span>Updated</span><strong>${escapeHtml(formatDateTime(d.updated_at))}</strong></div>
+      </div>
+      ${
+        d.last_error
+          ? `<div class="detail-section"><h3>Last error</h3><code class="confirm-meta">${escapeHtml(d.last_error)}</code></div>`
+          : ""
+      }
+      ${
+        canManage
+          ? `<div class="preview-actions">
+              <button class="btn btn-primary btn-sm" type="button" id="drawerReplayDelivery">${escapeHtml(t("console.replay"))}</button>
+            </div>`
+          : ""
+      }
+    `;
+    els.drawer.hidden = false;
+    els.drawerBackdrop.hidden = false;
+    document.body.classList.add("drawer-open");
+    requestAnimationFrame(() => els.drawer.classList.add("is-open"));
+    state.drawerOpen = true;
+    const replayBtn = document.getElementById("drawerReplayDelivery");
+    if (replayBtn) {
+      replayBtn.addEventListener("click", async () => {
+        replayBtn.disabled = true;
+        try {
+          await api(`/console/api/webhook-deliveries/${encodeURIComponent(d.id)}/replay`, {
+            method: "POST"
+          });
+          setStatus(els.webhookStatus, t("console.deliveryRequeued"));
+          await loadOverview();
+          closeDrawer();
+        } catch (err) {
+          setStatus(els.webhookStatus, err.message || t("console.error"), true);
+          replayBtn.disabled = false;
+        }
+      });
+    }
+    els.drawerClose.focus();
+  }
+
   function openDrawer(payment, trigger) {
     state.lastTrigger = trigger || null;
     window.clearTimeout(state.closeTimer);
@@ -2468,7 +2593,7 @@
     const button = els.drawerBody.querySelector("[data-cancel-payment]");
     if (!button) return;
     button.addEventListener("click", async () => {
-      if (!window.confirm(t("console.cancelPaymentConfirm"))) return;
+      if (!(await confirmAction({ title: "Cancel payment", message: t("console.cancelPaymentConfirm"), meta: payment.id, confirmLabel: t("console.cancelPayment"), destructive: true }))) return;
       button.disabled = true;
       try {
         await api(`/console/api/payment-intents/${encodeURIComponent(payment.id)}/cancel`, {
@@ -2972,7 +3097,7 @@
       toast(ok ? t("common.copied") : t("console.error"));
       return;
     }
-    if (!window.confirm(t("console.disablePaymentLinkConfirm"))) return;
+    if (!(await confirmAction({ title: "Disable payment link", message: t("console.disablePaymentLinkConfirm"), meta: disable.dataset.disableLink, confirmLabel: t("console.disable"), destructive: true }))) return;
     disable.disabled = true;
     try {
       await api(`/console/api/payment-links/${encodeURIComponent(disable.dataset.disablePaymentLink)}/disable`, { method: "POST" });
@@ -3081,7 +3206,7 @@
     }
     if (!rotate && !disable && !replay) return;
     const button = rotate || disable || replay;
-    if (rotate && !window.confirm(t("console.rotateSecretConfirm"))) return;
+    if (rotate && !(await confirmAction({ title: "Rotate webhook secret", message: t("console.rotateSecretConfirm"), meta: rotate.dataset.rotateWebhook, confirmLabel: t("console.rotateSecret") }))) return;
     button.disabled = true;
     try {
       if (rotate) {
@@ -3143,7 +3268,7 @@
       message = t("console.locationRenamed");
     } else {
       const active = button.dataset.locationActive !== "true";
-      if (!active && !window.confirm(t("console.disableLocationConfirm"))) return;
+      if (!active && !(await confirmAction({ title: "Disable location", message: t("console.disableLocationConfirm"), meta: button.dataset.locationId, confirmLabel: t("console.disable"), destructive: true }))) return;
       body = { active };
       message = t(active ? "console.locationEnabled" : "console.locationDisabled");
     }
@@ -3171,7 +3296,7 @@
   els.memberList.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-revoke-member]");
     if (!button) return;
-    if (!window.confirm(t("console.revokeMemberConfirm"))) return;
+    if (!(await confirmAction({ title: "Revoke team member", message: t("console.revokeMemberConfirm"), meta: button.dataset.revokeMember, confirmLabel: t("console.revoke"), destructive: true }))) return;
     button.disabled = true;
     try {
       await api(`/console/api/members/${encodeURIComponent(button.dataset.revokeMember)}/revoke`, {
@@ -3231,7 +3356,19 @@
     const revoke = event.target.closest("[data-revoke-key]");
     if (!rotate && !revoke) return;
     const button = rotate || revoke;
-    if (!window.confirm(t(rotate ? "console.rotateKey" : "console.revokeKey"))) return;
+    const keyId = rotate ? rotate.dataset.rotateKey : revoke.dataset.revokeKey;
+    const keyObj = (state.overview?.api_keys || []).find((k) => k.id === keyId);
+    const meta = keyObj
+      ? `${keyObj.label ? `${keyObj.label} · ` : ""}${keyObj.key_prefix}…`
+      : keyId;
+    const confirmed = await confirmAction({
+      title: rotate ? "Rotate API key" : "Revoke API key",
+      message: t(rotate ? "console.rotateKey" : "console.revokeKey"),
+      meta,
+      confirmLabel: rotate ? t("console.rotate") : t("console.revoke"),
+      destructive: !rotate
+    });
+    if (!confirmed) return;
     button.disabled = true;
     try {
       if (rotate) {
@@ -3256,6 +3393,47 @@
       button.disabled = false;
     }
   });
+
+  if (els.healthAlertChips) {
+    els.healthAlertChips.addEventListener("click", async (event) => {
+      const btn = event.target.closest("[data-alert-action]");
+      if (!btn) return;
+      const action = btn.dataset.alertAction;
+      if (action === "quarantined") {
+        navigateTo("payments", { scrollTo: "reconciliation" });
+      } else if (action === "dead_webhooks") {
+        navigateTo("developers", { scrollTo: "webhooks" });
+      } else if (action === "degraded_connections") {
+        navigateTo("settings", { scrollTo: "routingCard" });
+      } else if (action === "expiring_keys" || action === "stale_keys") {
+        navigateTo("developers", { scrollTo: "api-keys" });
+        const keys = state.overview?.api_keys || [];
+        const nowMs = Date.now();
+        const targetKey = keys.find((k) => {
+          if (k.status !== "ACTIVE") return false;
+          if (action === "expiring_keys" && k.expires_at) {
+            const rem = new Date(k.expires_at).getTime() - nowMs;
+            return rem > 0 && rem <= 7 * 24 * 60 * 60 * 1000;
+          }
+          if (action === "stale_keys") {
+            const refMs = new Date(k.last_used_at || k.created_at).getTime();
+            return nowMs - refMs >= 30 * 24 * 60 * 60 * 1000;
+          }
+          return false;
+        });
+        if (targetKey) await openKeyInspector(targetKey.id, btn);
+      }
+    });
+  }
+
+  if (els.webhookDeliveries) {
+    els.webhookDeliveries.addEventListener("click", (event) => {
+      const inspectBtn = event.target.closest("[data-inspect-delivery]");
+      if (inspectBtn) {
+        openDeliveryInspector(inspectBtn.dataset.inspectDelivery, inspectBtn);
+      }
+    });
+  }
 
   if (els.auditFilterGroup) {
     els.auditFilterGroup.addEventListener("click", async (event) => {
