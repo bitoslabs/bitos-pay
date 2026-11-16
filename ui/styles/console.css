@@ -921,6 +921,13 @@ body[data-page="console"] .skip-link {
   letter-spacing: -0.035em;
   white-space: nowrap;
   box-shadow: 0 10px 28px -24px rgba(0, 0, 0, 0.45);
+  transition: background 0.18s, transform 0.18s;
+}
+
+.console-brand:hover,
+.console-brand:focus-visible {
+  background: var(--soft);
+  transform: translateY(-1px);
 }
 
 .console-brand .brand-mark {
@@ -1124,33 +1131,40 @@ body:not(.is-authenticated) .console-tabs {
 
 .console-rail {
   position: sticky;
-  top: 96px;
+  top: 90px;
   align-self: start;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
   width: 64px;
   height: auto;
-  margin: 18px auto 0;
-  padding: 12px 0;
+  margin: 14px auto 0;
+  padding: 0;
   border: 0;
-  border-radius: 34px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rail-group {
+  display: grid;
+  gap: 6px;
+  width: 58px;
+  padding: 8px 0;
+  justify-items: center;
+  border-radius: 32px;
   background: var(--card);
   box-shadow: 0 18px 42px -32px rgba(0, 0, 0, 0.55);
 }
 
 .rail-tools {
-  display: grid;
-  gap: 6px;
-  width: 100%;
-  margin-bottom: 2px;
-  padding-bottom: 4px;
+  margin-bottom: 0;
+  padding-bottom: 8px;
 }
 
 .rail-nav {
   display: grid;
-  gap: 7px;
+  gap: 6px;
 }
 
 .rail-tool {
@@ -1184,6 +1198,7 @@ body:not(.is-authenticated) .console-tabs {
 }
 
 .rail-link {
+  position: relative;
   display: grid;
   place-items: center;
   width: 46px;
@@ -1193,6 +1208,37 @@ body:not(.is-authenticated) .console-tabs {
   color: var(--text2);
   text-decoration: none;
   transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.rail-link-primary {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.rail-link[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  color: var(--text);
+  font: 600 11px/1.2 var(--font-sans);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 40;
+  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.rail-link[data-tooltip]:hover::after,
+.rail-link[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
 }
 
 .rail-link:hover {
@@ -1225,6 +1271,11 @@ body:not(.is-authenticated) .console-tabs {
 .console-body {
   min-width: 0;
   padding: 28px clamp(22px, 3.4vw, 46px) 42px;
+}
+
+#consoleView {
+  width: min(1320px, 100%);
+  margin-inline: auto;
 }
 
 .console-hero,
@@ -2239,13 +2290,16 @@ body[data-page="console"] .eyebrow {
     padding-inline: 10px;
   }
 
-  .console-sandbox,
   #helpButton {
     display: none;
   }
 
   .account-copy {
     max-width: 108px;
+  }
+
+  .account-copy small {
+    display: none;
   }
 
   .dashboard-grid {
@@ -2869,4 +2923,287 @@ body.drawer-open {
   display: grid;
   gap: 10px;
   margin-top: 12px;
+}
+
+/* Phase 1 & 2: Operational health, risk limits, key telemetry & audit log */
+.health-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(247, 147, 26, 0.35);
+  border-radius: var(--r-md);
+  background: rgba(247, 147, 26, 0.08);
+}
+
+.health-banner-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.health-banner-chips,
+.health-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.risk-card .risk-meters {
+  display: grid;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.risk-meter-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  color: var(--t2);
+  margin-bottom: 6px;
+}
+
+.risk-meter-head strong {
+  color: var(--t1);
+}
+
+.risk-meter progress.meter {
+  width: 100%;
+  height: 8px;
+}
+
+.risk-meter progress.meter.is-warn::-webkit-progress-value {
+  background: var(--warn);
+}
+
+.risk-meter progress.meter.is-danger::-webkit-progress-value {
+  background: var(--bad, #ef4444);
+}
+
+.risk-meta-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.risk-meta-row span {
+  display: block;
+  font-size: 12px;
+  color: var(--t2);
+}
+
+.risk-meta-row strong {
+  font-size: 13px;
+  color: var(--t1);
+}
+
+.key-health-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.key-health-pill {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+}
+
+.key-health-pill span {
+  display: block;
+  font-size: 11px;
+  color: var(--t2);
+}
+
+.key-health-pill strong {
+  font: 600 16px var(--font-mono);
+  color: var(--t1);
+}
+
+.key-health-pill.is-warn strong {
+  color: var(--warn);
+}
+
+.key-label-title {
+  font-weight: 600;
+  color: var(--t1);
+  margin-right: 8px;
+}
+
+.key-label-field {
+  margin-bottom: 12px;
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+
+.telemetry-stat {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+}
+
+.telemetry-stat span {
+  display: block;
+  font-size: 11px;
+  color: var(--t2);
+}
+
+.telemetry-stat strong {
+  font: 600 15px var(--font-mono);
+  color: var(--t1);
+}
+
+.telemetry-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 56px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  margin-bottom: 12px;
+}
+
+.telemetry-bar {
+  flex: 1;
+  min-width: 4px;
+  border-radius: 3px 3px 0 0;
+  background: var(--accent);
+  opacity: 0.85;
+}
+
+.telemetry-bar.has-errors {
+  background: var(--warn);
+}
+
+.drawer-scope-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 14px;
+}
+
+.audit-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.audit-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  font-size: 12px;
+}
+
+.audit-row code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+@media (max-width: 720px) {
+  .key-health-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Production UX: In-app confirmation modal & clickable alert chips */
+.chip-action {
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 0.15s, filter 0.15s;
+}
+
+.chip-action:hover,
+.chip-action:focus-visible {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(8, 10, 14, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+.confirm-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 61;
+  width: min(420px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+  display: grid;
+  gap: 10px;
+}
+
+.confirm-dialog[hidden],
+.confirm-backdrop[hidden] {
+  display: none;
+}
+
+.confirm-dialog h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.confirm-dialog p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.45;
+}
+
+.confirm-meta {
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  border: 1px solid var(--line);
+  font: 500 12px var(--font-mono);
+  color: var(--t1);
+  word-break: break-all;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-danger {
+  background: var(--bad, #ef4444);
+  color: #fff;
 }

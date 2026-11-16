@@ -92,6 +92,18 @@ export async function createApp(
     return payload;
   });
 
+  app.addHook("onResponse", async (request, reply) => {
+    const url = request.raw.url ?? "";
+    if (!url.startsWith("/v1/")) return;
+    const authorization = request.headers.authorization;
+    if (!authorization) return;
+    try {
+      await deps.monitoring.recordApiKeyUsageFromBearer(authorization, reply.statusCode, url);
+    } catch {
+      // Usage telemetry must never break or fail an API response.
+    }
+  });
+
   registerErrorHandler(app);
   await registerRawBodyCapture(app);
   await registerRoutes(app, deps);

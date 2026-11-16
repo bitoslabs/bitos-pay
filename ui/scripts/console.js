@@ -258,12 +258,28 @@
     profileStatusMessage: document.getElementById("profileStatusMessage"),
     profileNote: document.getElementById("profileNote"),
     apiKeys: document.getElementById("apiKeys"),
+    keyHealthStrip: document.getElementById("keyHealthStrip"),
     createKeyButton: document.getElementById("createKeyButton"),
     keyForm: document.getElementById("keyForm"),
+    keyLabel: document.getElementById("keyLabel"),
     keySubmit: document.getElementById("keySubmit"),
     keyExpiry: document.getElementById("keyExpiry"),
     keyCancel: document.getElementById("keyCancel"),
     keyStatus: document.getElementById("keyStatus"),
+    healthAlertBanner: document.getElementById("healthAlertBanner"),
+    healthAlertChips: document.getElementById("healthAlertChips"),
+    riskLimitsCard: document.getElementById("riskLimitsCard"),
+    riskStatusChip: document.getElementById("riskStatusChip"),
+    riskDailyLabel: document.getElementById("riskDailyLabel"),
+    riskDailyBar: document.getElementById("riskDailyBar"),
+    riskVelocityLabel: document.getElementById("riskVelocityLabel"),
+    riskVelocityBar: document.getElementById("riskVelocityBar"),
+    riskMaxPayment: document.getElementById("riskMaxPayment"),
+    riskFeeRate: document.getElementById("riskFeeRate"),
+    auditLogCard: document.getElementById("auditLogCard"),
+    auditFilterGroup: document.getElementById("auditFilterGroup"),
+    auditLogList: document.getElementById("auditLogList"),
+    auditLogEmpty: document.getElementById("auditLogEmpty"),
     scopeCount: document.getElementById("scopeCount"),
     eventCount: document.getElementById("eventCount"),
     keyPanel: document.getElementById("newKeyPanel"),
@@ -420,13 +436,76 @@
     }
   }
 
+  function confirmAction({
+    title = "Confirm action",
+    message = "",
+    meta = "",
+    confirmLabel = "Confirm",
+    destructive = false
+  } = {}) {
+    const dialog = document.getElementById("confirmDialog");
+    const backdrop = document.getElementById("confirmBackdrop");
+    const titleEl = document.getElementById("confirmTitle");
+    const msgEl = document.getElementById("confirmMessage");
+    const metaEl = document.getElementById("confirmMeta");
+    const cancelBtn = document.getElementById("confirmCancel");
+    const okBtn = document.getElementById("confirmOk");
+    if (!dialog || !backdrop) return Promise.resolve(window.confirm(message));
+
+    const previousFocus = document.activeElement;
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    if (meta) {
+      metaEl.textContent = meta;
+      metaEl.hidden = false;
+    } else {
+      metaEl.hidden = true;
+    }
+    okBtn.textContent = confirmLabel;
+    okBtn.className = `btn btn-sm ${destructive ? "btn-danger" : "btn-primary"}`;
+    dialog.hidden = false;
+    backdrop.hidden = false;
+    cancelBtn.focus();
+
+    return new Promise((resolve) => {
+      function cleanup(result) {
+        dialog.hidden = true;
+        backdrop.hidden = true;
+        cancelBtn.removeEventListener("click", onCancel);
+        okBtn.removeEventListener("click", onOk);
+        backdrop.removeEventListener("click", onCancel);
+        document.removeEventListener("keydown", onKey);
+        if (previousFocus && typeof previousFocus.focus === "function" && document.contains(previousFocus)) {
+          previousFocus.focus();
+        }
+        resolve(result);
+      }
+      function onCancel() {
+        cleanup(false);
+      }
+      function onOk() {
+        cleanup(true);
+      }
+      function onKey(e) {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          cleanup(false);
+        }
+      }
+      cancelBtn.addEventListener("click", onCancel);
+      okBtn.addEventListener("click", onOk);
+      backdrop.addEventListener("click", onCancel);
+      document.addEventListener("keydown", onKey);
+    });
+  }
+
   async function selectConsoleMode(mode) {
     if (!consoleModes().includes(mode) || mode === state.consoleMode) return;
     if (state.session) {
       const message = mode === "live"
         ? t("console.switchLiveConfirm")
         : t("console.switchSandboxConfirm");
-      if (!window.confirm(message)) return;
+      if (!(await confirmAction({ title: "Switch environment", message, confirmLabel: "Switch" }))) return;
       try {
         await api("/console/api/session", { method: "DELETE" });
       } catch {
@@ -1211,13 +1290,17 @@
     return VIEWS.has(value) ? value : "overview";
   }
 
-  function setActiveNav(view) {
-    document.querySelectorAll(".console-tabs a[data-view]").forEach((link) => {
-      if (link.dataset.view === view) link.setAttribute("aria-current", "page");
+  function setActiveNav(view, scrollTo) {
+    document.querySelectorAll(".console-tabs a").forEach((link) => {
+      const matchesScroll = Boolean(scrollTo && link.dataset.tabScroll === scrollTo);
+      const matchesView = !scrollTo && link.dataset.view === view;
+      if (matchesScroll || matchesView) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
-    document.querySelectorAll(".console-rail .rail-link[data-nav]").forEach((link) => {
-      link.classList.toggle("is-active", link.dataset.nav === view);
+    document.querySelectorAll(".console-rail .rail-link").forEach((link) => {
+      const matchesScroll = Boolean(scrollTo && link.dataset.scrollTo === scrollTo);
+      const matchesView = !scrollTo && link.dataset.nav === view;
+      link.classList.toggle("is-active", matchesScroll || matchesView);
     });
   }
 
@@ -1226,11 +1309,11 @@
     document.querySelectorAll("[data-console-view]").forEach((page) => {
       page.hidden = page.dataset.consoleView !== safe;
     });
-    setActiveNav(safe);
     const focus = state.pendingFocus;
     const scrollTo = state.pendingScroll;
     state.pendingFocus = null;
     state.pendingScroll = null;
+    setActiveNav(safe, scrollTo);
     if (options.scroll !== false) {
       const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
       if (scrollTo) {
@@ -1430,6 +1513,87 @@
     els.recentEmpty.hidden = recent.length > 0;
   }
 
+  function renderHealthAndRisk() {
+    const health = state.overview?.health;
+    if (!health) {
+      if (els.healthAlertBanner) els.healthAlertBanner.hidden = true;
+      if (els.riskLimitsCard) els.riskLimitsCard.hidden = true;
+      return;
+    }
+
+    const alerts = health.alerts || {};
+    const alertChips = [];
+    if (alerts.quarantined_payments > 0) {
+      alertChips.push(`<button type="button" class="chip chip-warn chip-action" data-alert-action="quarantined">${escapeHtml(String(alerts.quarantined_payments))} quarantined</button>`);
+    }
+    if (alerts.dead_webhooks > 0) {
+      alertChips.push(`<button type="button" class="chip chip-warn chip-action" data-alert-action="dead_webhooks">${escapeHtml(String(alerts.dead_webhooks))} dead webhooks</button>`);
+    }
+    if (alerts.degraded_connections > 0) {
+      alertChips.push(`<button type="button" class="chip chip-warn chip-action" data-alert-action="degraded_connections">${escapeHtml(String(alerts.degraded_connections))} degraded provider</button>`);
+    }
+    if (alerts.expiring_keys > 0) {
+      alertChips.push(`<button type="button" class="chip chip-warn chip-action" data-alert-action="expiring_keys">${escapeHtml(String(alerts.expiring_keys))} expiring keys</button>`);
+    }
+    if (alerts.stale_keys > 0) {
+      alertChips.push(`<button type="button" class="chip chip-action" data-alert-action="stale_keys">${escapeHtml(String(alerts.stale_keys))} unused keys</button>`);
+    }
+    els.healthAlertChips.innerHTML = alertChips.join("");
+    els.healthAlertBanner.hidden = alertChips.length === 0;
+
+    const risk = health.risk || {};
+    els.riskLimitsCard.hidden = false;
+    els.riskStatusChip.textContent = health.merchant_status || "ACTIVE";
+    els.riskStatusChip.className = `chip ${health.merchant_status === "ACTIVE" ? "chip-ok" : "chip-warn"}`;
+
+    const dayUsed = Number(risk.day_volume_sat || 0);
+    const dayLimit = Number(risk.daily_volume_limit_sat || 0);
+    const dayPct = dayLimit > 0 ? Math.min(100, Math.round((dayUsed / dayLimit) * 100)) : 0;
+    els.riskDailyLabel.textContent = `${formatSats(dayUsed)} / ${formatSats(dayLimit)} SAT`;
+    els.riskDailyBar.value = dayPct;
+    els.riskDailyBar.classList.toggle("is-warn", dayPct >= 80 && dayPct < 95);
+    els.riskDailyBar.classList.toggle("is-danger", dayPct >= 95);
+
+    const minUsed = Number(risk.minute_count || 0);
+    const minLimit = Number(risk.max_payments_per_minute || 0);
+    const minPct = minLimit > 0 ? Math.min(100, Math.round((minUsed / minLimit) * 100)) : 0;
+    els.riskVelocityLabel.textContent = `${minUsed} / ${minLimit} req`;
+    els.riskVelocityBar.value = minPct;
+    els.riskVelocityBar.classList.toggle("is-warn", minPct >= 80 && minPct < 95);
+    els.riskVelocityBar.classList.toggle("is-danger", minPct >= 95);
+
+    els.riskMaxPayment.textContent = `${formatSats(Number(risk.max_payment_sat || 0))} SAT`;
+    els.riskFeeRate.textContent = `${Number(risk.fee_bps || 0)} bps (${(Number(risk.fee_bps || 0) / 100).toFixed(2)}%)`;
+  }
+
+  function renderAuditLogs(entries) {
+    if (!els.auditLogCard) return;
+    if (!hasScope("keys:read")) {
+      els.auditLogCard.hidden = true;
+      return;
+    }
+    els.auditLogCard.hidden = false;
+    const rows = entries || state.overview?.audit_logs || [];
+    els.auditLogEmpty.hidden = rows.length > 0;
+    els.auditLogList.innerHTML = rows
+      .map(
+        (entry) => `
+          <div class="audit-row">
+            <div>
+              <strong>${escapeHtml(entry.action)}</strong>
+              <span class="hint"> · <code>${escapeHtml(entry.target_ref)}</code></span>
+            </div>
+            <div class="hint">
+              <span>${escapeHtml(entry.actor_ref)}</span> ·
+              <span>${escapeHtml(entry.result)}</span> ·
+              <span>${escapeHtml(formatDateTime(entry.occurred_at))}</span>
+            </div>
+          </div>
+        `
+      )
+      .join("");
+  }
+
   function renderKeys() {
     const overview = state.overview;
     const card = document.getElementById("api-keys");
@@ -1440,6 +1604,32 @@
     card.hidden = false;
     els.createKeyButton.hidden = !hasScope("keys:write");
     const keys = overview.api_keys || [];
+    const nowMs = Date.now();
+    let activeCount = 0;
+    let expiringCount = 0;
+    let staleCount = 0;
+    let inactiveCount = 0;
+    for (const key of keys) {
+      const expired = Boolean(key.expires_at) && new Date(key.expires_at).getTime() <= nowMs;
+      if (key.status !== "ACTIVE" || expired) {
+        inactiveCount += 1;
+        continue;
+      }
+      activeCount += 1;
+      if (key.expires_at) {
+        const remaining = new Date(key.expires_at).getTime() - nowMs;
+        if (remaining > 0 && remaining <= 7 * 24 * 60 * 60 * 1000) expiringCount += 1;
+      }
+      const refMs = new Date(key.last_used_at || key.created_at).getTime();
+      if (nowMs - refMs >= 30 * 24 * 60 * 60 * 1000) staleCount += 1;
+    }
+    els.keyHealthStrip.hidden = keys.length === 0;
+    els.keyHealthStrip.innerHTML = `
+      <div class="key-health-pill"><span>${escapeHtml(t("console.keyHealthActive"))}</span><strong>${activeCount}</strong></div>
+      <div class="key-health-pill ${expiringCount > 0 ? "is-warn" : ""}"><span>${escapeHtml(t("console.keyHealthExpiring"))}</span><strong>${expiringCount}</strong></div>
+      <div class="key-health-pill"><span>${escapeHtml(t("console.keyHealthStale"))}</span><strong>${staleCount}</strong></div>
+      <div class="key-health-pill"><span>${escapeHtml(t("console.keyHealthInactive"))}</span><strong>${inactiveCount}</strong></div>
+    `;
     if (!keys.length) {
       els.apiKeys.innerHTML = `<p class="hint">${escapeHtml(t("console.noKeys"))}</p>`;
       return;
@@ -1451,6 +1641,7 @@
         const expired = Boolean(key.expires_at) && new Date(key.expires_at) <= new Date();
         const canRevoke = canManage;
         const canRotate = canManage && !expired;
+        const inspect = `<button class="btn btn-glass btn-sm" type="button" data-inspect-key="${escapeHtml(key.id)}">${escapeHtml(t("console.keyInspect"))}</button>`;
         const revoke = canRevoke
           ? `<button class="btn btn-ghost btn-sm" type="button" data-revoke-key="${escapeHtml(key.id)}">${escapeHtml(t("console.revoke"))}</button>`
           : "";
@@ -1461,14 +1652,16 @@
         const expiryLabel = key.expires_at
           ? `${t("console.keyExpires")} ${formatDateTime(key.expires_at)}`
           : t("console.keyNoExpiry");
+        const labelHtml = key.label ? `<strong class="key-label-title">${escapeHtml(key.label)}</strong>` : "";
+        const usedHtml = key.last_used_at ? ` · Last used ${formatDateTime(key.last_used_at)}` : "";
         return `
           <div class="console-key-row">
             <div class="console-key-meta">
-              <code>${escapeHtml(key.key_prefix)}…</code>
+              <div>${labelHtml}<code>${escapeHtml(key.key_prefix)}…</code></div>
               <span>${escapeHtml(key.scopes.join(", "))}</span>
-              <span>${escapeHtml(stateLabel)} · ${escapeHtml(expiryLabel)}${current ? ` · ${escapeHtml(t("console.currentKey"))}` : ""}</span>
+              <span>${escapeHtml(stateLabel)} · ${escapeHtml(expiryLabel)}${escapeHtml(usedHtml)}${current ? ` · ${escapeHtml(t("console.currentKey"))}` : ""}</span>
             </div>
-            <div class="console-key-actions">${rotate}${revoke}</div>
+            <div class="console-key-actions">${inspect}${rotate}${revoke}</div>
           </div>
         `;
       })
@@ -1711,11 +1904,12 @@
     els.webhookDeliveries.innerHTML = webhooks.deliveries.length
       ? webhooks.deliveries
           .map((delivery) => {
+            const inspect = `<button class="btn btn-glass btn-sm" type="button" data-inspect-delivery="${escapeHtml(delivery.id)}">${escapeHtml(t("console.keyInspect"))}</button>`;
             const replay = canManage
               ? ` <button class="btn btn-ghost btn-sm" type="button" data-replay-delivery="${escapeHtml(delivery.id)}">${escapeHtml(t("console.replay"))}</button>`
               : "";
             return `
-              <li><strong>${escapeHtml(delivery.status)}</strong> · ${escapeHtml(delivery.event_type)} · attempt ${escapeHtml(String(delivery.attempt))}${replay}</li>
+              <li><strong>${escapeHtml(delivery.status)}</strong> · ${escapeHtml(delivery.event_type)} · attempt ${escapeHtml(String(delivery.attempt))} ${inspect}${replay}</li>
             `;
           })
           .join("")
@@ -1942,6 +2136,7 @@
     renderWelcomeKey();
     renderNostr();
     renderPermissions();
+    renderHealthAndRisk();
     renderStats();
     renderBalances();
     renderPlan();
@@ -1957,6 +2152,7 @@
     renderReconciliations();
     renderApiReference();
     renderWebhooks();
+    renderAuditLogs();
   }
 
   function apiReferenceGroup(path) {
@@ -2164,9 +2360,174 @@
     }
   }
 
+  async function openKeyInspector(keyId, trigger) {
+    state.lastTrigger = trigger || null;
+    window.clearTimeout(state.closeTimer);
+    try {
+      const telemetry = await api(`/console/api/api-keys/${encodeURIComponent(keyId)}/telemetry?hours=24`);
+      const k = telemetry.key;
+      const totals = telemetry.totals || {};
+      const buckets = telemetry.buckets || [];
+      const maxBucket = Math.max(1, ...buckets.map((b) => Number(b.total_count || 0)));
+      const highPriv = new Set(["payments:refund", "keys:write", "merchants:write", "*"]);
+      const scopeBadges = (k.scopes || [])
+        .map((s) => `<span class="chip ${highPriv.has(s) ? "chip-warn" : ""}">${escapeHtml(s)}</span>`)
+        .join("");
+      const barsHtml = buckets.length
+        ? `<div class="telemetry-bars">${buckets
+            .map((b) => {
+              const pct = Math.max(10, Math.round((Number(b.total_count || 0) / maxBucket) * 100));
+              const hasErr = (b.auth_error_count || 0) + (b.rate_limit_count || 0) + (b.server_error_count || 0) > 0;
+              return `<div class="telemetry-bar ${hasErr ? "has-errors" : ""}" style="height:${pct}%" title="${escapeHtml(formatDateTime(b.bucket_start))}: ${b.total_count} req"></div>`;
+            })
+            .join("")}</div>`
+        : `<p class="hint">No API requests recorded in the last 24 hours.</p>`;
+      const auditHtml = (telemetry.recent_audit || []).length
+        ? `<div class="audit-list">${telemetry.recent_audit
+            .map(
+              (a) => `<div class="audit-row"><strong>${escapeHtml(a.action)}</strong><span class="hint">${escapeHtml(a.result)} · ${escapeHtml(formatDateTime(a.occurred_at))}</span></div>`
+            )
+            .join("")}</div>`
+        : `<p class="hint">${escapeHtml(t("console.auditEmpty"))}</p>`;
+
+      const drawerTitle = document.getElementById("drawerTitle");
+      if (drawerTitle) drawerTitle.textContent = t("console.keyTelemetryTitle");
+      const canRename = hasScope("keys:write");
+      els.drawerBody.innerHTML = `
+        <div class="detail-section">
+          <div class="settlement-row"><span>ID</span><code class="mono">${escapeHtml(k.id)}</code></div>
+          <div class="settlement-row"><span>Prefix</span><code class="mono">${escapeHtml(k.key_prefix)}…</code></div>
+          <div class="settlement-row"><span>Status</span><strong>${escapeHtml(k.status)}</strong></div>
+          <div class="settlement-row"><span>Last used</span><strong>${escapeHtml(k.last_used_at ? formatDateTime(k.last_used_at) : "Never")}</strong></div>
+          <div class="settlement-row"><span>Expires</span><strong>${escapeHtml(k.expires_at ? formatDateTime(k.expires_at) : t("console.keyNoExpiry"))}</strong></div>
+        </div>
+        ${
+          canRename
+            ? `<form id="keyRenameForm" class="refund-form">
+                <div class="field">
+                  <label for="keyRenameInput">${escapeHtml(t("console.keyLabel"))}</label>
+                  <input id="keyRenameInput" type="text" maxlength="80" value="${escapeHtml(k.label || "")}" placeholder="e.g. BNOS Checkout Prod" />
+                </div>
+                <div class="preview-actions">
+                  <button class="btn btn-primary btn-sm" type="submit">${escapeHtml(t("console.keySaveLabel"))}</button>
+                </div>
+                <p class="console-status" id="keyRenameStatus" role="status" aria-live="polite"></p>
+              </form>`
+            : ""
+        }
+        <div class="detail-section">
+          <h3>${escapeHtml(t("console.scopes"))}</h3>
+          <div class="drawer-scope-list">${scopeBadges}</div>
+        </div>
+        <div class="detail-section">
+          <h3>${escapeHtml(t("console.keyUsage24h"))}</h3>
+          <div class="telemetry-grid">
+            <div class="telemetry-stat"><span>${escapeHtml(t("console.keyRequests"))}</span><strong>${Number(totals.total_count || 0)}</strong></div>
+            <div class="telemetry-stat"><span>${escapeHtml(t("console.keySuccess"))}</span><strong>${Number(totals.success_count || 0)}</strong></div>
+            <div class="telemetry-stat"><span>${escapeHtml(t("console.keyAuthErrors"))}</span><strong>${Number(totals.auth_error_count || 0)}</strong></div>
+            <div class="telemetry-stat"><span>${escapeHtml(t("console.keyRateLimited"))}</span><strong>${Number(totals.rate_limit_count || 0)}</strong></div>
+          </div>
+          ${barsHtml}
+          <p class="hint">${escapeHtml(t("console.keyLastEndpoint"))}: <code>${escapeHtml(totals.last_endpoint || "—")}</code></p>
+        </div>
+        <div class="detail-section">
+          <h3>${escapeHtml(t("console.auditTitle"))}</h3>
+          ${auditHtml}
+        </div>
+      `;
+      els.drawer.hidden = false;
+      els.drawerBackdrop.hidden = false;
+      document.body.classList.add("drawer-open");
+      requestAnimationFrame(() => els.drawer.classList.add("is-open"));
+      state.drawerOpen = true;
+      const renameForm = document.getElementById("keyRenameForm");
+      if (renameForm) {
+        renameForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const input = document.getElementById("keyRenameInput");
+          const statusEl = document.getElementById("keyRenameStatus");
+          try {
+            await api(`/console/api/api-keys/${encodeURIComponent(k.id)}`, {
+              method: "PATCH",
+              body: { label: input.value.trim() || null }
+            });
+            setStatus(statusEl, t("console.keyLabelSaved"));
+            await loadOverview();
+          } catch (err) {
+            setStatus(statusEl, err.message || t("console.error"), true);
+          }
+        });
+      }
+      els.drawerClose.focus();
+    } catch (error) {
+      setStatus(els.keyStatus, error.message || t("console.error"), true);
+    }
+  }
+
+  function openDeliveryInspector(deliveryId, trigger) {
+    const deliveries = state.overview?.webhooks?.deliveries || [];
+    const d = deliveries.find((item) => item.id === deliveryId);
+    if (!d) return;
+    state.lastTrigger = trigger || null;
+    window.clearTimeout(state.closeTimer);
+    const drawerTitle = document.getElementById("drawerTitle");
+    if (drawerTitle) drawerTitle.textContent = "Webhook delivery";
+    const canManage = hasScope("webhooks:write");
+    const statusClass = d.status === "DELIVERED" ? "chip-ok" : d.status === "DEAD" || d.status === "FAILED" ? "chip-warn" : "";
+    els.drawerBody.innerHTML = `
+      <div class="detail-section">
+        <div class="settlement-row"><span>Status</span><span class="chip ${statusClass}">${escapeHtml(d.status)}</span></div>
+        <div class="settlement-row"><span>Delivery ID</span><code class="mono">${escapeHtml(d.id)}</code></div>
+        <div class="settlement-row"><span>Event ID</span><code class="mono">${escapeHtml(d.event_id)}</code></div>
+        <div class="settlement-row"><span>Event type</span><code class="mono">${escapeHtml(d.event_type)}</code></div>
+        <div class="settlement-row"><span>Attempts</span><strong>${escapeHtml(String(d.attempt))}</strong></div>
+        <div class="settlement-row"><span>Response code</span><strong class="mono">${escapeHtml(d.response_code != null ? String(d.response_code) : "—")}</strong></div>
+        <div class="settlement-row"><span>Next attempt</span><strong>${escapeHtml(d.next_attempt_at ? formatDateTime(d.next_attempt_at) : "—")}</strong></div>
+        <div class="settlement-row"><span>Updated</span><strong>${escapeHtml(formatDateTime(d.updated_at))}</strong></div>
+      </div>
+      ${
+        d.last_error
+          ? `<div class="detail-section"><h3>Last error</h3><code class="confirm-meta">${escapeHtml(d.last_error)}</code></div>`
+          : ""
+      }
+      ${
+        canManage
+          ? `<div class="preview-actions">
+              <button class="btn btn-primary btn-sm" type="button" id="drawerReplayDelivery">${escapeHtml(t("console.replay"))}</button>
+            </div>`
+          : ""
+      }
+    `;
+    els.drawer.hidden = false;
+    els.drawerBackdrop.hidden = false;
+    document.body.classList.add("drawer-open");
+    requestAnimationFrame(() => els.drawer.classList.add("is-open"));
+    state.drawerOpen = true;
+    const replayBtn = document.getElementById("drawerReplayDelivery");
+    if (replayBtn) {
+      replayBtn.addEventListener("click", async () => {
+        replayBtn.disabled = true;
+        try {
+          await api(`/console/api/webhook-deliveries/${encodeURIComponent(d.id)}/replay`, {
+            method: "POST"
+          });
+          setStatus(els.webhookStatus, t("console.deliveryRequeued"));
+          await loadOverview();
+          closeDrawer();
+        } catch (err) {
+          setStatus(els.webhookStatus, err.message || t("console.error"), true);
+          replayBtn.disabled = false;
+        }
+      });
+    }
+    els.drawerClose.focus();
+  }
+
   function openDrawer(payment, trigger) {
     state.lastTrigger = trigger || null;
     window.clearTimeout(state.closeTimer);
+    const drawerTitle = document.getElementById("drawerTitle");
+    if (drawerTitle) drawerTitle.textContent = t("detail.title");
     els.drawerBody.innerHTML = renderDrawer(payment);
     els.drawer.hidden = false;
     els.drawerBackdrop.hidden = false;
@@ -2232,7 +2593,7 @@
     const button = els.drawerBody.querySelector("[data-cancel-payment]");
     if (!button) return;
     button.addEventListener("click", async () => {
-      if (!window.confirm(t("console.cancelPaymentConfirm"))) return;
+      if (!(await confirmAction({ title: "Cancel payment", message: t("console.cancelPaymentConfirm"), meta: payment.id, confirmLabel: t("console.cancelPayment"), destructive: true }))) return;
       button.disabled = true;
       try {
         await api(`/console/api/payment-intents/${encodeURIComponent(payment.id)}/cancel`, {
@@ -2606,6 +2967,14 @@
     navigateTo("payments", { focus: "paymentSearch", scrollTo: "payments" });
   });
 
+  document.addEventListener("keydown", (event) => {
+    if (!state.session || state.drawerOpen) return;
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      navigateTo("payments", { focus: "paymentSearch", scrollTo: "payments" });
+    }
+  });
+
   document.getElementById("helpButton").addEventListener("click", () => {
     toast(t("console.helpToast"));
   });
@@ -2728,7 +3097,7 @@
       toast(ok ? t("common.copied") : t("console.error"));
       return;
     }
-    if (!window.confirm(t("console.disablePaymentLinkConfirm"))) return;
+    if (!(await confirmAction({ title: "Disable payment link", message: t("console.disablePaymentLinkConfirm"), meta: disable.dataset.disableLink, confirmLabel: t("console.disable"), destructive: true }))) return;
     disable.disabled = true;
     try {
       await api(`/console/api/payment-links/${encodeURIComponent(disable.dataset.disablePaymentLink)}/disable`, { method: "POST" });
@@ -2837,7 +3206,7 @@
     }
     if (!rotate && !disable && !replay) return;
     const button = rotate || disable || replay;
-    if (rotate && !window.confirm(t("console.rotateSecretConfirm"))) return;
+    if (rotate && !(await confirmAction({ title: "Rotate webhook secret", message: t("console.rotateSecretConfirm"), meta: rotate.dataset.rotateWebhook, confirmLabel: t("console.rotateSecret") }))) return;
     button.disabled = true;
     try {
       if (rotate) {
@@ -2899,7 +3268,7 @@
       message = t("console.locationRenamed");
     } else {
       const active = button.dataset.locationActive !== "true";
-      if (!active && !window.confirm(t("console.disableLocationConfirm"))) return;
+      if (!active && !(await confirmAction({ title: "Disable location", message: t("console.disableLocationConfirm"), meta: button.dataset.locationId, confirmLabel: t("console.disable"), destructive: true }))) return;
       body = { active };
       message = t(active ? "console.locationEnabled" : "console.locationDisabled");
     }
@@ -2927,7 +3296,7 @@
   els.memberList.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-revoke-member]");
     if (!button) return;
-    if (!window.confirm(t("console.revokeMemberConfirm"))) return;
+    if (!(await confirmAction({ title: "Revoke team member", message: t("console.revokeMemberConfirm"), meta: button.dataset.revokeMember, confirmLabel: t("console.revoke"), destructive: true }))) return;
     button.disabled = true;
     try {
       await api(`/console/api/members/${encodeURIComponent(button.dataset.revokeMember)}/revoke`, {
@@ -2956,9 +3325,11 @@
     setButton(els.keySubmit, true, "dash.creating", "console.createKey");
     try {
       const expiresInDays = els.keyExpiry.value ? Number(els.keyExpiry.value) : null;
+      const label = els.keyLabel ? els.keyLabel.value.trim() || null : null;
       const created = await api("/console/api/api-keys", {
-        body: { scopes, expires_in_days: expiresInDays }
+        body: { label, scopes, expires_in_days: expiresInDays }
       });
+      if (els.keyLabel) els.keyLabel.value = "";
       const title = els.keyPanel.querySelector("h3");
       title.dataset.i18n = "console.keyCreated";
       title.textContent = t("console.keyCreated");
@@ -2976,11 +3347,28 @@
   });
 
   els.apiKeys.addEventListener("click", async (event) => {
+    const inspect = event.target.closest("[data-inspect-key]");
+    if (inspect) {
+      await openKeyInspector(inspect.dataset.inspectKey, inspect);
+      return;
+    }
     const rotate = event.target.closest("[data-rotate-key]");
     const revoke = event.target.closest("[data-revoke-key]");
     if (!rotate && !revoke) return;
     const button = rotate || revoke;
-    if (!window.confirm(t(rotate ? "console.rotateKey" : "console.revokeKey"))) return;
+    const keyId = rotate ? rotate.dataset.rotateKey : revoke.dataset.revokeKey;
+    const keyObj = (state.overview?.api_keys || []).find((k) => k.id === keyId);
+    const meta = keyObj
+      ? `${keyObj.label ? `${keyObj.label} · ` : ""}${keyObj.key_prefix}…`
+      : keyId;
+    const confirmed = await confirmAction({
+      title: rotate ? "Rotate API key" : "Revoke API key",
+      message: t(rotate ? "console.rotateKey" : "console.revokeKey"),
+      meta,
+      confirmLabel: rotate ? t("console.rotate") : t("console.revoke"),
+      destructive: !rotate
+    });
+    if (!confirmed) return;
     button.disabled = true;
     try {
       if (rotate) {
@@ -3005,6 +3393,65 @@
       button.disabled = false;
     }
   });
+
+  if (els.healthAlertChips) {
+    els.healthAlertChips.addEventListener("click", async (event) => {
+      const btn = event.target.closest("[data-alert-action]");
+      if (!btn) return;
+      const action = btn.dataset.alertAction;
+      if (action === "quarantined") {
+        navigateTo("payments", { scrollTo: "reconciliation" });
+      } else if (action === "dead_webhooks") {
+        navigateTo("developers", { scrollTo: "webhooks" });
+      } else if (action === "degraded_connections") {
+        navigateTo("settings", { scrollTo: "routingCard" });
+      } else if (action === "expiring_keys" || action === "stale_keys") {
+        navigateTo("developers", { scrollTo: "api-keys" });
+        const keys = state.overview?.api_keys || [];
+        const nowMs = Date.now();
+        const targetKey = keys.find((k) => {
+          if (k.status !== "ACTIVE") return false;
+          if (action === "expiring_keys" && k.expires_at) {
+            const rem = new Date(k.expires_at).getTime() - nowMs;
+            return rem > 0 && rem <= 7 * 24 * 60 * 60 * 1000;
+          }
+          if (action === "stale_keys") {
+            const refMs = new Date(k.last_used_at || k.created_at).getTime();
+            return nowMs - refMs >= 30 * 24 * 60 * 60 * 1000;
+          }
+          return false;
+        });
+        if (targetKey) await openKeyInspector(targetKey.id, btn);
+      }
+    });
+  }
+
+  if (els.webhookDeliveries) {
+    els.webhookDeliveries.addEventListener("click", (event) => {
+      const inspectBtn = event.target.closest("[data-inspect-delivery]");
+      if (inspectBtn) {
+        openDeliveryInspector(inspectBtn.dataset.inspectDelivery, inspectBtn);
+      }
+    });
+  }
+
+  if (els.auditFilterGroup) {
+    els.auditFilterGroup.addEventListener("click", async (event) => {
+      const btn = event.target.closest("[data-audit-filter]");
+      if (!btn) return;
+      const prefix = btn.dataset.auditFilter || "";
+      els.auditFilterGroup.querySelectorAll("[data-audit-filter]").forEach((el) => {
+        el.setAttribute("aria-pressed", String(el === btn));
+      });
+      try {
+        const q = prefix ? `?action_prefix=${encodeURIComponent(prefix)}&limit=25` : "?limit=25";
+        const res = await api(`/console/api/audit-logs${q}`);
+        renderAuditLogs(res.data || []);
+      } catch (error) {
+        toast(error.message || t("console.error"));
+      }
+    });
+  }
 
   els.drawerClose.addEventListener("click", closeDrawer);
   els.drawerBackdrop.addEventListener("click", closeDrawer);

@@ -164,12 +164,23 @@ svg.i {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
+  padding: 5px 13px 5px 6px;
+  border-radius: 999px;
+  background: var(--card);
   color: var(--text);
   text-decoration: none;
   font: 800 18px var(--font-head);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   white-space: nowrap;
+  box-shadow: 0 10px 28px -24px rgba(0, 0, 0, 0.45);
+  transition: background 0.18s, transform 0.18s;
+}
+
+.brand:hover,
+.brand:focus-visible {
+  background: var(--soft);
+  transform: translateY(-1px);
 }
 
 .brand em {

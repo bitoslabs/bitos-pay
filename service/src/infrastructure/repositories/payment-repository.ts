@@ -690,4 +690,15 @@ export class PaymentRepository extends BaseRepository {
     );
     return result.rows;
   }
+
+  async countQuarantinedAttempts(merchantId: string): Promise<number> {
+    const result = await this.db.query<{ total: number | string }>(
+      `SELECT COUNT(*) AS total
+         FROM ${this.t("payment_attempts")} a
+         JOIN ${this.t("payment_intents")} i ON i.id = a.payment_intent_id
+        WHERE i.merchant_id = $1 AND a.status = 'QUARANTINED'`,
+      [merchantId]
+    );
+    return Number(result.rows[0]?.total ?? 0);
+  }
 }

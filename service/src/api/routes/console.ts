@@ -7,6 +7,8 @@ import type { AppDependencies } from "../dependencies.ts";
 import {
   presentApiKey,
   presentApiKeys,
+  presentApiKeyTelemetry,
+  presentAuditLogs,
   presentBalances,
   presentCreatedApiKey,
   presentCreatedIntent,
@@ -16,6 +18,7 @@ import {
   presentIntent,
   presentIntentView,
   presentMerchant,
+  presentMerchantHealth,
   presentLocation,
   presentLocations,
   presentPlan,
@@ -53,8 +56,13 @@ interface LoginBody {
 }
 
 interface ApiKeyBody {
+  label?: string | null;
   scopes?: string[];
   expires_in_days?: number | null;
+}
+
+interface UpdateApiKeyBody {
+  label?: string | null;
 }
 
 interface MemberBody {
@@ -478,11 +486,18 @@ export async function registerConsoleRoutes(
       ({ connection, selected }) => presentProviderConnection(connection, selected)
     );
     const paymentLinks = await deps.paymentLinks.list(context.auth);
+    const health = await deps.monitoring.getMerchantHealth(context.auth);
+    const auditLogs = hasScope(context, "keys:read")
+      ? (presentAuditLogs(await deps.monitoring.listAuditLogs(context.auth, { limit: 25 }), request.id)
+          .data as unknown[])
+      : [];
 
     return {
       object: "console_overview",
       server_time: now.toISOString(),
       merchant: presentMerchant(merchant, request.id),
+      health: presentMerchantHealth(health),
+      audit_logs: auditLogs,
       scopes: context.scopes,
       session_expires_at: context.expiresAt,
       stats: {
@@ -959,6 +974,26 @@ export async function registerConsoleRoutes(
     }
   );
 
+  app.get("/console/api/health", async (request) => {
+    const context = await consoleContext(request, deps);
+    const health = await deps.monitoring.getMerchantHealth(context.auth);
+    return presentMerchantHealth(health, request.id);
+  });
+
+  app.get<{ Querystring: { limit?: string; action_prefix?: string; target_ref?: string } }>(
+    "/console/api/audit-logs",
+    async (request) => {
+      const context = await consoleContext(request, deps);
+      const limit = request.query.limit ? Number(request.query.limit) : 50;
+      const entries = await deps.monitoring.listAuditLogs(context.auth, {
+        limit: Number.isFinite(limit) ? limit : 50,
+        actionPrefix: request.query.action_prefix,
+        targetRef: request.query.target_ref
+      });
+      return presentAuditLogs(entries, request.id);
+    }
+  );
+
   app.get("/console/api/api-keys", async (request) => {
     const context = await consoleContext(request, deps);
     return presentApiKeys(await deps.apiKeys.listKeys(context.auth), request.id);
@@ -972,6 +1007,7 @@ export async function registerConsoleRoutes(
           type: ["object", "null"],
           additionalProperties: false,
           properties: {
+            label: { type: ["string", "null"], maxLength: 80 },
             scopes: {
               type: "array",
               minItems: 1,
@@ -988,6 +1024,41 @@ export async function registerConsoleRoutes(
       requireCsrf(context, request, deps);
       const key = await deps.apiKeys.createKey(context.auth, request.body ?? {});
       return reply.code(201).send(presentCreatedApiKey(key, request.id));
+    }
+  );
+
+  app.patch<{ Params: { id: string }; Body: UpdateApiKeyBody }>(
+    "/console/api/api-keys/:id",
+    {
+      schema: {
+        body: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            label: { type: ["string", "null"], maxLength: 80 }
+          }
+        }
+      }
+    },
+    async (request) => {
+      const context = await consoleContext(request, deps);
+      requireCsrf(context, request, deps);
+      const key = await deps.apiKeys.updateLabel(context.auth, request.params.id, request.body.label);
+      return presentApiKey(key, request.id);
+    }
+  );
+
+  app.get<{ Params: { id: string }; Querystring: { hours?: string } }>(
+    "/console/api/api-keys/:id/telemetry",
+    async (request) => {
+      const context = await consoleContext(request, deps);
+      const hours = request.query.hours ? Number(request.query.hours) : 24;
+      const telemetry = await deps.monitoring.getApiKeyTelemetry(
+        context.auth,
+        request.params.id,
+        Number.isFinite(hours) ? hours : 24
+      );
+      return presentApiKeyTelemetry(telemetry, request.id);
     }
   );
 

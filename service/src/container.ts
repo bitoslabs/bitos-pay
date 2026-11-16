@@ -24,6 +24,7 @@ import { ProviderConnectionService } from "./application/provider-connection-ser
 import { SettlementService } from "./application/settlement-service.ts";
 import { LedgerQueryService } from "./application/ledger-query-service.ts";
 import { LocationService } from "./application/location-service.ts";
+import { MonitoringService } from "./application/monitoring-service.ts";
 import { QuoteService } from "./application/quote-service.ts";
 import { RefundService } from "./application/refund-service.ts";
 import { RiskService } from "./application/risk-service.ts";
@@ -54,6 +55,7 @@ export interface Services {
   refunds: RefundService;
   risk: RiskService;
   settlementReports: SettlementReportingService;
+  monitoring: MonitoringService;
 }
 
 export interface Container {
@@ -207,6 +209,14 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
     now
   );
   const locations = new LocationService(repositories.locations, repositories.audit, auth, now);
+  const monitoring = new MonitoringService(
+    repositories.merchants,
+    repositories.payments,
+    repositories.webhooks,
+    repositories.audit,
+    auth,
+    now
+  );
   const dependencies: AppDependencies = {
     config,
     auth,
@@ -229,6 +239,7 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
     refunds,
     risk,
     settlementReports,
+    monitoring,
     ready: () => repositories.payments.ready(),
     sandboxEnabled: config.sandboxEnabled,
     sandboxToken: config.sandboxToken
@@ -259,7 +270,8 @@ export async function createContainer(options: ContainerOptions = {}): Promise<C
       quotes,
       refunds,
       risk,
-      settlementReports
+      settlementReports,
+      monitoring
     },
     dependencies
   };
