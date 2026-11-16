@@ -1227,6 +1227,11 @@ body:not(.is-authenticated) .console-tabs {
   padding: 28px clamp(22px, 3.4vw, 46px) 42px;
 }
 
+#consoleView {
+  width: min(1320px, 100%);
+  margin-inline: auto;
+}
+
 .console-hero,
 .dash-card {
   scroll-margin-top: 110px;
@@ -2869,4 +2874,211 @@ body.drawer-open {
   display: grid;
   gap: 10px;
   margin-top: 12px;
+}
+
+/* Phase 1 & 2: Operational health, risk limits, key telemetry & audit log */
+.health-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(247, 147, 26, 0.35);
+  border-radius: var(--r-md);
+  background: rgba(247, 147, 26, 0.08);
+}
+
+.health-banner-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.health-banner-chips,
+.health-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.risk-card .risk-meters {
+  display: grid;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.risk-meter-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  color: var(--t2);
+  margin-bottom: 6px;
+}
+
+.risk-meter-head strong {
+  color: var(--t1);
+}
+
+.risk-meter progress.meter {
+  width: 100%;
+  height: 8px;
+}
+
+.risk-meter progress.meter.is-warn::-webkit-progress-value {
+  background: var(--warn);
+}
+
+.risk-meter progress.meter.is-danger::-webkit-progress-value {
+  background: var(--bad, #ef4444);
+}
+
+.risk-meta-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.risk-meta-row span {
+  display: block;
+  font-size: 12px;
+  color: var(--t2);
+}
+
+.risk-meta-row strong {
+  font-size: 13px;
+  color: var(--t1);
+}
+
+.key-health-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.key-health-pill {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+}
+
+.key-health-pill span {
+  display: block;
+  font-size: 11px;
+  color: var(--t2);
+}
+
+.key-health-pill strong {
+  font: 600 16px var(--font-mono);
+  color: var(--t1);
+}
+
+.key-health-pill.is-warn strong {
+  color: var(--warn);
+}
+
+.key-label-title {
+  font-weight: 600;
+  color: var(--t1);
+  margin-right: 8px;
+}
+
+.key-label-field {
+  margin-bottom: 12px;
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+
+.telemetry-stat {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+}
+
+.telemetry-stat span {
+  display: block;
+  font-size: 11px;
+  color: var(--t2);
+}
+
+.telemetry-stat strong {
+  font: 600 15px var(--font-mono);
+  color: var(--t1);
+}
+
+.telemetry-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 56px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  margin-bottom: 12px;
+}
+
+.telemetry-bar {
+  flex: 1;
+  min-width: 4px;
+  border-radius: 3px 3px 0 0;
+  background: var(--accent);
+  opacity: 0.85;
+}
+
+.telemetry-bar.has-errors {
+  background: var(--warn);
+}
+
+.drawer-scope-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 14px;
+}
+
+.audit-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.audit-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  font-size: 12px;
+}
+
+.audit-row code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+@media (max-width: 720px) {
+  .key-health-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

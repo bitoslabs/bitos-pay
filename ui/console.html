@@ -288,6 +288,17 @@
           </section>
 
           <section class="console-page" data-console-view="overview" id="overview">
+            <div class="health-banner" id="healthAlertBanner" hidden role="status" aria-live="polite">
+              <div class="health-banner-copy">
+                <span class="dot warn" aria-hidden="true"></span>
+                <strong data-i18n="console.healthBannerTitle">Operational attention needed</strong>
+                <div class="health-banner-chips" id="healthAlertChips"></div>
+              </div>
+              <div class="health-banner-actions">
+                <a class="btn btn-glass btn-sm" href="#/developers" data-goto="developers" data-i18n="console.navDevelopers">Developers</a>
+                <a class="btn btn-glass btn-sm" href="#/payments" data-goto="payments" data-i18n="console.navPayments">Payments</a>
+              </div>
+            </div>
             <section class="console-hero">
               <div class="hero-copy">
                 <p class="hero-date" id="todayLabel">—</p>
@@ -417,6 +428,36 @@
       </div>
       <div class="recent-list" id="recentList"></div>
       <p class="empty" id="recentEmpty" hidden data-i18n="console.noRecent">No payments yet.</p>
+    </article>
+
+    <article class="dash-card risk-card" id="riskLimitsCard">
+      <div class="dash-card-head">
+        <div>
+          <h2 data-i18n="console.riskTitle">Risk &amp; limits</h2>
+          <p data-i18n="console.riskLead">Live daily volume, payment velocity and fee configuration.</p>
+        </div>
+        <span class="chip" id="riskStatusChip">ACTIVE</span>
+      </div>
+      <div class="risk-meters">
+        <div class="risk-meter">
+          <div class="risk-meter-head">
+            <span data-i18n="console.riskDailyVolume">24h volume</span>
+            <strong class="mono" id="riskDailyLabel">0 / 0 SAT</strong>
+          </div>
+          <progress class="meter" id="riskDailyBar" value="0" max="100"></progress>
+        </div>
+        <div class="risk-meter">
+          <div class="risk-meter-head">
+            <span data-i18n="console.riskVelocity">Velocity (1 min)</span>
+            <strong class="mono" id="riskVelocityLabel">0 / 0 req</strong>
+          </div>
+          <progress class="meter" id="riskVelocityBar" value="0" max="100"></progress>
+        </div>
+      </div>
+      <div class="risk-meta-row">
+        <div><span data-i18n="console.riskMaxPayment">Max payment</span><strong class="mono" id="riskMaxPayment">—</strong></div>
+        <div><span data-i18n="console.riskFeeRate">Fee rate</span><strong class="mono" id="riskFeeRate">—</strong></div>
+      </div>
     </article>
               </div>
             </div>
@@ -657,6 +698,7 @@
                         </div>
                         <button class="btn btn-glass btn-sm" type="button" id="createKeyButton" data-i18n="console.createKey">New key</button>
                       </div>
+                      <div class="key-health-strip" id="keyHealthStrip" hidden></div>
                       <div class="console-key-list" id="apiKeys"></div>
                       <div class="console-new-key" id="newKeyPanel" hidden>
                         <h3 data-i18n="console.keyCreated">Key created</h3>
@@ -667,6 +709,13 @@
                         </div>
                       </div>
                       <form id="keyForm" hidden>
+                        <div class="field key-label-field">
+                          <label for="keyLabel">
+                            <span data-i18n="console.keyLabel">Key label</span>
+                            <span class="badge-optional" data-i18n="common.optional">Optional</span>
+                          </label>
+                          <input id="keyLabel" type="text" maxlength="80" placeholder="e.g. BNOS Checkout Prod" />
+                        </div>
                         <fieldset class="console-scopes">
                           <legend>
                             <span data-i18n="console.scopes">Scopes</span>
@@ -1071,6 +1120,22 @@ const expected = hmacSha256(secret, signed);
                           </div>
                           <p class="console-status" id="nostrLinkStatus" role="status" aria-live="polite"></p>
                           <p class="hint" data-i18n="console.nostrSafety">NIP-07 signs a one-time challenge. No nsec, private key or signature secret is stored by this console.</p>
+                        </article>
+
+        <article class="dash-card audit-card" id="auditLogCard">
+                          <div class="dash-card-head">
+                            <div>
+                              <h2 data-i18n="console.auditTitle">Security &amp; activity log</h2>
+                              <p data-i18n="console.auditLead">Recent key, webhook, profile and team actions for this organization.</p>
+                            </div>
+                            <div class="console-scope-presets" id="auditFilterGroup" role="group" aria-label="Audit filter">
+                              <button class="btn btn-glass btn-sm" type="button" data-audit-filter="" aria-pressed="true" data-i18n="console.auditAll">All</button>
+                              <button class="btn btn-glass btn-sm" type="button" data-audit-filter="api_key." aria-pressed="false" data-i18n="console.auditKeys">Keys</button>
+                              <button class="btn btn-glass btn-sm" type="button" data-audit-filter="webhook." aria-pressed="false" data-i18n="console.auditWebhooks">Webhooks</button>
+                            </div>
+                          </div>
+                          <div class="audit-list" id="auditLogList"></div>
+                          <p class="empty" id="auditLogEmpty" hidden data-i18n="console.auditEmpty">No audit events recorded yet.</p>
                         </article>
               </div>
             </div>

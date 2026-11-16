@@ -16,6 +16,7 @@ import type { ProviderConnectionService } from "../application/provider-connecti
 import type { QuoteService } from "../application/quote-service.ts";
 import type { RefundService } from "../application/refund-service.ts";
 import type { RiskService } from "../application/risk-service.ts";
+import type { MonitoringService } from "../application/monitoring-service.ts";
 import type { SettlementReportingService } from "../application/settlement-reporting-service.ts";
 import type { SettlementService } from "../application/settlement-service.ts";
 import type { WebhookService } from "../application/webhook-service.ts";
@@ -42,6 +43,7 @@ export interface AppDependencies {
   refunds: RefundService;
   risk: RiskService;
   settlementReports: SettlementReportingService;
+  monitoring: MonitoringService;
   ready: () => Promise<boolean>;
   sandboxEnabled: boolean;
   sandboxToken: string | null;

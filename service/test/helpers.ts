@@ -11,6 +11,7 @@ import { EventPublisher } from "../src/application/event-publisher.ts";
 import { ExpirationService } from "../src/application/expiration-service.ts";
 import { LedgerQueryService } from "../src/application/ledger-query-service.ts";
 import { LocationService } from "../src/application/location-service.ts";
+import { MonitoringService } from "../src/application/monitoring-service.ts";
 import { PaymentIntentService } from "../src/application/payment-intent-service.ts";
 import { PaymentLinkService } from "../src/application/payment-link-service.ts";
 import { MerchantProfileService } from "../src/application/merchant-profile-service.ts";
@@ -254,6 +255,14 @@ export async function createTestRuntime(
     now
   );
   const locations = new LocationService(repositories.locations, repositories.audit, auth, now);
+  const monitoring = new MonitoringService(
+    repositories.merchants,
+    repositories.payments,
+    repositories.webhooks,
+    repositories.audit,
+    auth,
+    now
+  );
   const dependencies: AppDependencies = {
     config,
     auth,
@@ -276,6 +285,7 @@ export async function createTestRuntime(
     refunds,
     risk,
     settlementReports,
+    monitoring,
     ready: () => repositories.payments.ready(),
     sandboxEnabled: config.sandboxEnabled,
     sandboxToken: config.sandboxToken

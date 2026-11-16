@@ -233,12 +233,69 @@ export interface MerchantMember {
 export interface ApiKeySummary {
   id: string;
   keyPrefix: string;
+  label: string | null;
   scopes: string[];
   livemode: boolean;
   status: ApiKeyStatus;
   lastUsedAt: string | null;
   createdAt: string;
   expiresAt: string | null;
+}
+
+export interface ApiKeyUsageBucket {
+  bucketStart: string;
+  totalCount: number;
+  successCount: number;
+  authErrorCount: number;
+  rateLimitCount: number;
+  serverErrorCount: number;
+  lastEndpoint: string | null;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  organizationId: string;
+  actorRef: string;
+  action: string;
+  targetRef: string;
+  result: string;
+  occurredAt: string;
+}
+
+export interface ApiKeyTelemetry {
+  key: ApiKeySummary;
+  windowHours: number;
+  totals: {
+    totalCount: number;
+    successCount: number;
+    authErrorCount: number;
+    rateLimitCount: number;
+    serverErrorCount: number;
+    lastEndpoint: string | null;
+  };
+  buckets: ApiKeyUsageBucket[];
+  recentAudit: AuditLogEntry[];
+}
+
+export interface MerchantHealthSummary {
+  merchantId: string;
+  merchantStatus: MerchantStatus;
+  risk: {
+    dayVolumeMsat: bigint;
+    dailyVolumeLimitMsat: bigint;
+    minuteCount: number;
+    maxPaymentsPerMinute: number;
+    maxPaymentMsat: bigint;
+    feeBps: number;
+  };
+  alerts: {
+    quarantinedPayments: number;
+    deadWebhooks: number;
+    degradedConnections: number;
+    expiringKeys: number;
+    staleKeys: number;
+  };
+  observedAt: string;
 }
 
 export interface ProviderConnectionSummary {

@@ -1,9 +1,12 @@
 import { msatToSat, msatToSatNumber } from "../domain/index.ts";
 import type {
   ApiKeySummary,
+  ApiKeyTelemetry,
+  AuditLogEntry,
   BalanceLine,
   ExchangeQuote,
   Invoice,
+  MerchantHealthSummary,
   MerchantLocation,
   PayTransaction,
   PaymentIntent,
@@ -288,12 +291,96 @@ function apiKeyBody(key: ApiKeySummary): Record<string, unknown> {
   return {
     id: key.id,
     key_prefix: key.keyPrefix,
+    label: key.label,
     scopes: key.scopes,
     livemode: key.livemode,
     status: key.status,
     last_used_at: key.lastUsedAt,
     created_at: key.createdAt,
     expires_at: key.expiresAt
+  };
+}
+
+export function presentAuditLogEntry(entry: AuditLogEntry): Record<string, unknown> {
+  return {
+    id: entry.id,
+    actor_ref: entry.actorRef,
+    action: entry.action,
+    target_ref: entry.targetRef,
+    result: entry.result,
+    occurred_at: entry.occurredAt
+  };
+}
+
+export function presentAuditLogs(
+  entries: AuditLogEntry[],
+  requestId: string
+): Record<string, unknown> {
+  return {
+    object: "list",
+    data: entries.map(presentAuditLogEntry),
+    request_id: requestId
+  };
+}
+
+export function presentApiKeyTelemetry(
+  telemetry: ApiKeyTelemetry,
+  requestId: string
+): Record<string, unknown> {
+  return {
+    object: "api_key_telemetry",
+    key: apiKeyBody(telemetry.key),
+    window_hours: telemetry.windowHours,
+    totals: {
+      total_count: telemetry.totals.totalCount,
+      success_count: telemetry.totals.successCount,
+      auth_error_count: telemetry.totals.authErrorCount,
+      rate_limit_count: telemetry.totals.rateLimitCount,
+      server_error_count: telemetry.totals.serverErrorCount,
+      last_endpoint: telemetry.totals.lastEndpoint
+    },
+    buckets: telemetry.buckets.map((b) => ({
+      bucket_start: b.bucketStart,
+      total_count: b.totalCount,
+      success_count: b.successCount,
+      auth_error_count: b.authErrorCount,
+      rate_limit_count: b.rateLimitCount,
+      server_error_count: b.serverErrorCount,
+      last_endpoint: b.lastEndpoint
+    })),
+    recent_audit: telemetry.recentAudit.map(presentAuditLogEntry),
+    request_id: requestId
+  };
+}
+
+export function presentMerchantHealth(
+  health: MerchantHealthSummary,
+  requestId?: string
+): Record<string, unknown> {
+  return {
+    object: "merchant_health",
+    merchant_id: health.merchantId,
+    merchant_status: health.merchantStatus,
+    risk: {
+      day_volume_sat: Number(msatToSat(health.risk.dayVolumeMsat)),
+      day_volume_msat: health.risk.dayVolumeMsat.toString(),
+      daily_volume_limit_sat: Number(msatToSat(health.risk.dailyVolumeLimitMsat)),
+      daily_volume_limit_msat: health.risk.dailyVolumeLimitMsat.toString(),
+      minute_count: health.risk.minuteCount,
+      max_payments_per_minute: health.risk.maxPaymentsPerMinute,
+      max_payment_sat: Number(msatToSat(health.risk.maxPaymentMsat)),
+      max_payment_msat: health.risk.maxPaymentMsat.toString(),
+      fee_bps: health.risk.feeBps
+    },
+    alerts: {
+      quarantined_payments: health.alerts.quarantinedPayments,
+      dead_webhooks: health.alerts.deadWebhooks,
+      degraded_connections: health.alerts.degradedConnections,
+      expiring_keys: health.alerts.expiringKeys,
+      stale_keys: health.alerts.staleKeys
+    },
+    observed_at: health.observedAt,
+    ...(requestId ? { request_id: requestId } : {})
   };
 }
 

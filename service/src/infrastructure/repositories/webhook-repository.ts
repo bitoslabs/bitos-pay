@@ -199,6 +199,17 @@ export class WebhookRepository extends BaseRepository {
     return result.rows.length > 0;
   }
 
+  async countDeadDeliveries(merchantId: string): Promise<number> {
+    const result = await this.db.query<{ total: number | string }>(
+      `SELECT COUNT(*) AS total
+         FROM ${this.t("webhook_deliveries")} d
+         JOIN ${this.t("webhook_endpoints")} e ON e.id = d.endpoint_id
+        WHERE e.merchant_id = $1 AND d.status = 'DEAD'`,
+      [merchantId]
+    );
+    return Number(result.rows[0]?.total ?? 0);
+  }
+
   async updateEndpointEvents(
     merchantId: string,
     endpointId: string,

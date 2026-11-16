@@ -7,8 +7,19 @@ import type {
 import type { AuthService } from "./auth-service.ts";
 
 export interface CreateApiKeyInput {
+  label?: string | null;
   scopes?: string[];
   expires_in_days?: number | null;
+}
+
+function normalizeLabel(label: string | null | undefined): string | null {
+  if (label === undefined || label === null) return null;
+  const trimmed = label.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > 80) {
+    throw new PayError("PAY_VALIDATION_BODY", "label must be at most 80 characters");
+  }
+  return trimmed;
 }
 
 export type CreatedApiKey = ApiKeySummary & { key: string };
@@ -55,6 +66,7 @@ export class ApiKeyService {
       throw new PayError("PAY_VALIDATION_BODY", "expires_in_days must be an integer between 1 and 365");
     }
 
+    const label = normalizeLabel(input.label);
     const now = this.now();
     const expiresAt = days === null ? null : new Date(now.getTime() + days * 24 * 60 * 60_000);
     const id = newId("key");
@@ -62,6 +74,7 @@ export class ApiKeyService {
     const summary: ApiKeySummary = {
       id,
       keyPrefix: secret.slice(0, 20),
+      label,
       scopes,
       livemode: auth.livemode,
       status: "ACTIVE",
@@ -77,6 +90,7 @@ export class ApiKeyService {
           merchantId: auth.merchantId,
           keyPrefix: summary.keyPrefix,
           keyHash: sha256Hex(secret),
+          label,
           scopes,
           livemode: auth.livemode,
           now,
@@ -126,6 +140,7 @@ export class ApiKeyService {
     const summary: ApiKeySummary = {
       id,
       keyPrefix: secret.slice(0, 20),
+      label: existing.label,
       scopes: existing.scopes,
       livemode: existing.livemode,
       status: "ACTIVE",
@@ -143,6 +158,7 @@ export class ApiKeyService {
           merchantId: auth.merchantId,
           keyPrefix: summary.keyPrefix,
           keyHash: sha256Hex(secret),
+          label: existing.label,
           scopes: existing.scopes,
           livemode: existing.livemode,
           now,
@@ -185,5 +201,27 @@ export class ApiKeyService {
       now
     });
     return summary;
+  }
+
+  async updateLabel(
+    auth: AuthContext,
+    keyId: string,
+    rawLabel: string | null | undefined
+  ): Promise<ApiKeySummary> {
+    this.auth.requireScope(auth, "keys:write");
+    const label = normalizeLabel(rawLabel);
+    const now = this.now();
+    const updated = await this.merchants.updateApiKeyLabel(auth.merchantId, keyId, label);
+    if (!updated) throw new PayError("PAY_NOT_FOUND_API_KEY");
+    await this.audit.insert({
+      id: newId("aud"),
+      organizationId: auth.organizationId,
+      actorRef: `api_key:${auth.apiKeyId}`,
+      action: "api_key.label_update",
+      targetRef: keyId,
+      result: "ACCEPTED",
+      now
+    });
+    return updated;
   }
 }

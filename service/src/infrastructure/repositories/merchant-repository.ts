@@ -2,6 +2,7 @@ import type { DbClient } from "../db/database.ts";
 import type {
   ApiKeyStatus,
   ApiKeySummary,
+  ApiKeyUsageBucket,
   AuthContext,
   MerchantStatus,
   ProviderConnectionStatus
@@ -35,6 +36,32 @@ export interface ApiKeyRow {
   livemode: boolean;
   key_status: string;
   expires_at: Date | string | null;
+}
+
+interface ApiKeySummaryRow {
+  id: string;
+  key_prefix: string;
+  label: string | null;
+  scopes: unknown;
+  livemode: boolean;
+  status: ApiKeyStatus;
+  last_used_at: Date | string | null;
+  created_at: Date | string;
+  expires_at: Date | string | null;
+}
+
+function mapApiKeySummary(row: ApiKeySummaryRow): ApiKeySummary {
+  return {
+    id: row.id,
+    keyPrefix: row.key_prefix,
+    label: row.label ?? null,
+    scopes: toJsonArray(row.scopes),
+    livemode: row.livemode,
+    status: row.status,
+    lastUsedAt: toIsoOrNull(row.last_used_at),
+    createdAt: toIso(row.created_at),
+    expiresAt: toIsoOrNull(row.expires_at)
+  };
 }
 
 export class MerchantRepository extends BaseRepository {
@@ -203,32 +230,40 @@ export class MerchantRepository extends BaseRepository {
   }
 
   async listApiKeys(merchantId: string): Promise<ApiKeySummary[]> {
-    const result = await this.db.query<{
-      id: string;
-      key_prefix: string;
-      scopes: unknown;
-      livemode: boolean;
-      status: ApiKeyStatus;
-      last_used_at: Date | string | null;
-      created_at: Date | string;
-      expires_at: Date | string | null;
-    }>(
-      `SELECT id, key_prefix, scopes, livemode, status, last_used_at, created_at, expires_at
+    const result = await this.db.query<ApiKeySummaryRow & Row>(
+      `SELECT id, key_prefix, label, scopes, livemode, status, last_used_at, created_at, expires_at
          FROM ${this.t("api_keys")}
         WHERE merchant_id = $1 AND kind = 'api'
         ORDER BY created_at DESC`,
       [merchantId]
     );
-    return result.rows.map((row) => ({
-      id: row.id,
-      keyPrefix: row.key_prefix,
-      scopes: toJsonArray(row.scopes),
-      livemode: row.livemode,
-      status: row.status,
-      lastUsedAt: toIsoOrNull(row.last_used_at),
-      createdAt: toIso(row.created_at),
-      expiresAt: toIsoOrNull(row.expires_at)
-    }));
+    return result.rows.map(mapApiKeySummary);
+  }
+
+  async getApiKey(merchantId: string, keyId: string): Promise<ApiKeySummary | null> {
+    const result = await this.db.query<ApiKeySummaryRow & Row>(
+      `SELECT id, key_prefix, label, scopes, livemode, status, last_used_at, created_at, expires_at
+         FROM ${this.t("api_keys")}
+        WHERE id = $1 AND merchant_id = $2 AND kind = 'api'`,
+      [keyId, merchantId]
+    );
+    return result.rows[0] ? mapApiKeySummary(result.rows[0]) : null;
+  }
+
+  async updateApiKeyLabel(
+    merchantId: string,
+    keyId: string,
+    label: string | null,
+    client: DbClient = this.db
+  ): Promise<ApiKeySummary | null> {
+    const result = await client.query<ApiKeySummaryRow & Row>(
+      `UPDATE ${this.t("api_keys")}
+          SET label = $3
+        WHERE id = $1 AND merchant_id = $2 AND kind = 'api'
+        RETURNING id, key_prefix, label, scopes, livemode, status, last_used_at, created_at, expires_at`,
+      [keyId, merchantId, label]
+    );
+    return result.rows[0] ? mapApiKeySummary(result.rows[0]) : null;
   }
 
   async revokeApiKey(
@@ -236,34 +271,83 @@ export class MerchantRepository extends BaseRepository {
     keyId: string,
     client: DbClient = this.db
   ): Promise<ApiKeySummary | null> {
-    const result = await client.query<{
-      id: string;
-      key_prefix: string;
-      scopes: unknown;
-      livemode: boolean;
-      status: ApiKeyStatus;
-      last_used_at: Date | string | null;
-      created_at: Date | string;
-      expires_at: Date | string | null;
-    }>(
+    const result = await client.query<ApiKeySummaryRow & Row>(
       `UPDATE ${this.t("api_keys")}
           SET status = 'REVOKED'
         WHERE id = $1 AND merchant_id = $2 AND status = 'ACTIVE'
-        RETURNING id, key_prefix, scopes, livemode, status, last_used_at, created_at, expires_at`,
+        RETURNING id, key_prefix, label, scopes, livemode, status, last_used_at, created_at, expires_at`,
       [keyId, merchantId]
     );
-    const row = result.rows[0];
-    if (!row) return null;
-    return {
-      id: row.id,
-      keyPrefix: row.key_prefix,
-      scopes: toJsonArray(row.scopes),
-      livemode: row.livemode,
-      status: row.status,
-      lastUsedAt: toIsoOrNull(row.last_used_at),
-      createdAt: toIso(row.created_at),
-      expiresAt: toIsoOrNull(row.expires_at)
-    };
+    return result.rows[0] ? mapApiKeySummary(result.rows[0]) : null;
+  }
+
+  async findApiKeyIdByHash(hash: string): Promise<string | null> {
+    const result = await this.db.query<{ id: string }>(
+      `SELECT id FROM ${this.t("api_keys")} WHERE key_hash = $1`,
+      [hash]
+    );
+    return result.rows[0]?.id ?? null;
+  }
+
+  async recordApiKeyUsage(input: {
+    apiKeyId: string;
+    bucketStart: Date;
+    statusCode: number;
+    endpoint: string;
+  }): Promise<void> {
+    const isSuccess = input.statusCode >= 200 && input.statusCode < 400 ? 1 : 0;
+    const isAuthErr = input.statusCode === 401 || input.statusCode === 403 ? 1 : 0;
+    const isRateErr = input.statusCode === 429 ? 1 : 0;
+    const isServerErr = input.statusCode >= 500 ? 1 : 0;
+    await this.db.query(
+      `INSERT INTO ${this.t("api_key_usage_hourly")}
+        (api_key_id, bucket_start, total_count, success_count, auth_error_count, rate_limit_count, server_error_count, last_endpoint)
+       VALUES ($1, $2, 1, $3, $4, $5, $6, $7)
+       ON CONFLICT (api_key_id, bucket_start) DO UPDATE SET
+         total_count = ${this.t("api_key_usage_hourly")}.total_count + 1,
+         success_count = ${this.t("api_key_usage_hourly")}.success_count + EXCLUDED.success_count,
+         auth_error_count = ${this.t("api_key_usage_hourly")}.auth_error_count + EXCLUDED.auth_error_count,
+         rate_limit_count = ${this.t("api_key_usage_hourly")}.rate_limit_count + EXCLUDED.rate_limit_count,
+         server_error_count = ${this.t("api_key_usage_hourly")}.server_error_count + EXCLUDED.server_error_count,
+         last_endpoint = EXCLUDED.last_endpoint`,
+      [
+        input.apiKeyId,
+        input.bucketStart.toISOString(),
+        isSuccess,
+        isAuthErr,
+        isRateErr,
+        isServerErr,
+        input.endpoint
+      ]
+    );
+  }
+
+  async listApiKeyUsage(keyId: string, since: Date): Promise<ApiKeyUsageBucket[]> {
+    const result = await this.db.query<{
+      bucket_start: Date | string;
+      total_count: number | string;
+      success_count: number | string;
+      auth_error_count: number | string;
+      rate_limit_count: number | string;
+      server_error_count: number | string;
+      last_endpoint: string | null;
+    }>(
+      `SELECT bucket_start, total_count, success_count, auth_error_count,
+              rate_limit_count, server_error_count, last_endpoint
+         FROM ${this.t("api_key_usage_hourly")}
+        WHERE api_key_id = $1 AND bucket_start >= $2
+        ORDER BY bucket_start ASC`,
+      [keyId, since.toISOString()]
+    );
+    return result.rows.map((row) => ({
+      bucketStart: toIso(row.bucket_start),
+      totalCount: Number(row.total_count),
+      successCount: Number(row.success_count),
+      authErrorCount: Number(row.auth_error_count),
+      rateLimitCount: Number(row.rate_limit_count),
+      serverErrorCount: Number(row.server_error_count),
+      lastEndpoint: row.last_endpoint
+    }));
   }
 
   async createOrganization(
@@ -453,6 +537,7 @@ export class MerchantRepository extends BaseRepository {
       merchantId: string;
       keyPrefix: string;
       keyHash: string;
+      label?: string | null;
       scopes: string[];
       livemode: boolean;
       now: Date;
@@ -463,14 +548,15 @@ export class MerchantRepository extends BaseRepository {
   ): Promise<void> {
     await client.query(
       `INSERT INTO ${this.t("api_keys")}
-        (id, merchant_id, key_prefix, key_hash, scopes, livemode, status, created_at, expires_at, kind)
-       VALUES ($1,$2,$3,$4,$5::jsonb,$6,'ACTIVE',$7,$8,$9)
+        (id, merchant_id, key_prefix, key_hash, label, scopes, livemode, status, created_at, expires_at, kind)
+       VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,'ACTIVE',$8,$9,$10)
        ON CONFLICT (key_hash) DO NOTHING`,
       [
         input.id,
         input.merchantId,
         input.keyPrefix,
         input.keyHash,
+        input.label ?? null,
         JSON.stringify(input.scopes),
         input.livemode,
         input.now.toISOString(),

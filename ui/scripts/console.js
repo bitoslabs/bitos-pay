@@ -258,12 +258,28 @@
     profileStatusMessage: document.getElementById("profileStatusMessage"),
     profileNote: document.getElementById("profileNote"),
     apiKeys: document.getElementById("apiKeys"),
+    keyHealthStrip: document.getElementById("keyHealthStrip"),
     createKeyButton: document.getElementById("createKeyButton"),
     keyForm: document.getElementById("keyForm"),
+    keyLabel: document.getElementById("keyLabel"),
     keySubmit: document.getElementById("keySubmit"),
     keyExpiry: document.getElementById("keyExpiry"),
     keyCancel: document.getElementById("keyCancel"),
     keyStatus: document.getElementById("keyStatus"),
+    healthAlertBanner: document.getElementById("healthAlertBanner"),
+    healthAlertChips: document.getElementById("healthAlertChips"),
+    riskLimitsCard: document.getElementById("riskLimitsCard"),
+    riskStatusChip: document.getElementById("riskStatusChip"),
+    riskDailyLabel: document.getElementById("riskDailyLabel"),
+    riskDailyBar: document.getElementById("riskDailyBar"),
+    riskVelocityLabel: document.getElementById("riskVelocityLabel"),
+    riskVelocityBar: document.getElementById("riskVelocityBar"),
+    riskMaxPayment: document.getElementById("riskMaxPayment"),
+    riskFeeRate: document.getElementById("riskFeeRate"),
+    auditLogCard: document.getElementById("auditLogCard"),
+    auditFilterGroup: document.getElementById("auditFilterGroup"),
+    auditLogList: document.getElementById("auditLogList"),
+    auditLogEmpty: document.getElementById("auditLogEmpty"),
     scopeCount: document.getElementById("scopeCount"),
     eventCount: document.getElementById("eventCount"),
     keyPanel: document.getElementById("newKeyPanel"),
@@ -1430,6 +1446,87 @@
     els.recentEmpty.hidden = recent.length > 0;
   }
 
+  function renderHealthAndRisk() {
+    const health = state.overview?.health;
+    if (!health) {
+      if (els.healthAlertBanner) els.healthAlertBanner.hidden = true;
+      if (els.riskLimitsCard) els.riskLimitsCard.hidden = true;
+      return;
+    }
+
+    const alerts = health.alerts || {};
+    const alertChips = [];
+    if (alerts.quarantined_payments > 0) {
+      alertChips.push(`<span class="chip chip-warn">${escapeHtml(String(alerts.quarantined_payments))} quarantined</span>`);
+    }
+    if (alerts.dead_webhooks > 0) {
+      alertChips.push(`<span class="chip chip-warn">${escapeHtml(String(alerts.dead_webhooks))} dead webhooks</span>`);
+    }
+    if (alerts.degraded_connections > 0) {
+      alertChips.push(`<span class="chip chip-warn">${escapeHtml(String(alerts.degraded_connections))} degraded provider</span>`);
+    }
+    if (alerts.expiring_keys > 0) {
+      alertChips.push(`<span class="chip chip-warn">${escapeHtml(String(alerts.expiring_keys))} expiring keys</span>`);
+    }
+    if (alerts.stale_keys > 0) {
+      alertChips.push(`<span class="chip">${escapeHtml(String(alerts.stale_keys))} unused keys</span>`);
+    }
+    els.healthAlertChips.innerHTML = alertChips.join("");
+    els.healthAlertBanner.hidden = alertChips.length === 0;
+
+    const risk = health.risk || {};
+    els.riskLimitsCard.hidden = false;
+    els.riskStatusChip.textContent = health.merchant_status || "ACTIVE";
+    els.riskStatusChip.className = `chip ${health.merchant_status === "ACTIVE" ? "chip-ok" : "chip-warn"}`;
+
+    const dayUsed = Number(risk.day_volume_sat || 0);
+    const dayLimit = Number(risk.daily_volume_limit_sat || 0);
+    const dayPct = dayLimit > 0 ? Math.min(100, Math.round((dayUsed / dayLimit) * 100)) : 0;
+    els.riskDailyLabel.textContent = `${formatSats(dayUsed)} / ${formatSats(dayLimit)} SAT`;
+    els.riskDailyBar.value = dayPct;
+    els.riskDailyBar.classList.toggle("is-warn", dayPct >= 80 && dayPct < 95);
+    els.riskDailyBar.classList.toggle("is-danger", dayPct >= 95);
+
+    const minUsed = Number(risk.minute_count || 0);
+    const minLimit = Number(risk.max_payments_per_minute || 0);
+    const minPct = minLimit > 0 ? Math.min(100, Math.round((minUsed / minLimit) * 100)) : 0;
+    els.riskVelocityLabel.textContent = `${minUsed} / ${minLimit} req`;
+    els.riskVelocityBar.value = minPct;
+    els.riskVelocityBar.classList.toggle("is-warn", minPct >= 80 && minPct < 95);
+    els.riskVelocityBar.classList.toggle("is-danger", minPct >= 95);
+
+    els.riskMaxPayment.textContent = `${formatSats(Number(risk.max_payment_sat || 0))} SAT`;
+    els.riskFeeRate.textContent = `${Number(risk.fee_bps || 0)} bps (${(Number(risk.fee_bps || 0) / 100).toFixed(2)}%)`;
+  }
+
+  function renderAuditLogs(entries) {
+    if (!els.auditLogCard) return;
+    if (!hasScope("keys:read")) {
+      els.auditLogCard.hidden = true;
+      return;
+    }
+    els.auditLogCard.hidden = false;
+    const rows = entries || state.overview?.audit_logs || [];
+    els.auditLogEmpty.hidden = rows.length > 0;
+    els.auditLogList.innerHTML = rows
+      .map(
+        (entry) => `
+          <div class="audit-row">
+            <div>
+              <strong>${escapeHtml(entry.action)}</strong>
+              <span class="hint"> · <code>${escapeHtml(entry.target_ref)}</code></span>
+            </div>
+            <div class="hint">
+              <span>${escapeHtml(entry.actor_ref)}</span> ·
+              <span>${escapeHtml(entry.result)}</span> ·
+              <span>${escapeHtml(formatDateTime(entry.occurred_at))}</span>
+            </div>
+          </div>
+        `
+      )
+      .join("");
+  }
+
   function renderKeys() {
     const overview = state.overview;
     const card = document.getElementById("api-keys");
@@ -1440,6 +1537,32 @@
     card.hidden = false;
     els.createKeyButton.hidden = !hasScope("keys:write");
     const keys = overview.api_keys || [];
+    const nowMs = Date.now();
+    let activeCount = 0;
+    let expiringCount = 0;
+    let staleCount = 0;
+    let inactiveCount = 0;
+    for (const key of keys) {
+      const expired = Boolean(key.expires_at) && new Date(key.expires_at).getTime() <= nowMs;
+      if (key.status !== "ACTIVE" || expired) {
+        inactiveCount += 1;
+        continue;
+      }
+      activeCount += 1;
+      if (key.expires_at) {
+        const remaining = new Date(key.expires_at).getTime() - nowMs;
+        if (remaining > 0 && remaining <= 7 * 24 * 60 * 60 * 1000) expiringCount += 1;
+      }
+      const refMs = new Date(key.last_used_at || key.created_at).getTime();
+      if (nowMs - refMs >= 30 * 24 * 60 * 60 * 1000) staleCount += 1;
+    }
+    els.keyHealthStrip.hidden = keys.length === 0;
+    els.keyHealthStrip.innerHTML = `
+      <div class="key-health-pill"><span>${escapeHtml(t("console.keyHealthActive"))}</span><strong>${activeCount}</strong></div>
+      <div class="key-health-pill ${expiringCount > 0 ? "is-warn" : ""}"><span>${escapeHtml(t("console.keyHealthExpiring"))}</span><strong>${expiringCount}</strong></div>
+      <div class="key-health-pill"><span>${escapeHtml(t("console.keyHealthStale"))}</span><strong>${staleCount}</strong></div>
+      <div class="key-health-pill"><span>${escapeHtml(t("console.keyHealthInactive"))}</span><strong>${inactiveCount}</strong></div>
+    `;
     if (!keys.length) {
       els.apiKeys.innerHTML = `<p class="hint">${escapeHtml(t("console.noKeys"))}</p>`;
       return;
@@ -1451,6 +1574,7 @@
         const expired = Boolean(key.expires_at) && new Date(key.expires_at) <= new Date();
         const canRevoke = canManage;
         const canRotate = canManage && !expired;
+        const inspect = `<button class="btn btn-glass btn-sm" type="button" data-inspect-key="${escapeHtml(key.id)}">${escapeHtml(t("console.keyInspect"))}</button>`;
         const revoke = canRevoke
           ? `<button class="btn btn-ghost btn-sm" type="button" data-revoke-key="${escapeHtml(key.id)}">${escapeHtml(t("console.revoke"))}</button>`
           : "";
@@ -1461,14 +1585,16 @@
         const expiryLabel = key.expires_at
           ? `${t("console.keyExpires")} ${formatDateTime(key.expires_at)}`
           : t("console.keyNoExpiry");
+        const labelHtml = key.label ? `<strong class="key-label-title">${escapeHtml(key.label)}</strong>` : "";
+        const usedHtml = key.last_used_at ? ` · Last used ${formatDateTime(key.last_used_at)}` : "";
         return `
           <div class="console-key-row">
             <div class="console-key-meta">
-              <code>${escapeHtml(key.key_prefix)}…</code>
+              <div>${labelHtml}<code>${escapeHtml(key.key_prefix)}…</code></div>
               <span>${escapeHtml(key.scopes.join(", "))}</span>
-              <span>${escapeHtml(stateLabel)} · ${escapeHtml(expiryLabel)}${current ? ` · ${escapeHtml(t("console.currentKey"))}` : ""}</span>
+              <span>${escapeHtml(stateLabel)} · ${escapeHtml(expiryLabel)}${escapeHtml(usedHtml)}${current ? ` · ${escapeHtml(t("console.currentKey"))}` : ""}</span>
             </div>
-            <div class="console-key-actions">${rotate}${revoke}</div>
+            <div class="console-key-actions">${inspect}${rotate}${revoke}</div>
           </div>
         `;
       })
@@ -1942,6 +2068,7 @@
     renderWelcomeKey();
     renderNostr();
     renderPermissions();
+    renderHealthAndRisk();
     renderStats();
     renderBalances();
     renderPlan();
@@ -1957,6 +2084,7 @@
     renderReconciliations();
     renderApiReference();
     renderWebhooks();
+    renderAuditLogs();
   }
 
   function apiReferenceGroup(path) {
@@ -2161,6 +2289,110 @@
       toast(error.message || t("console.error"));
       els.paymentsMore.disabled = false;
       els.paymentsMore.textContent = t("console.loadMore");
+    }
+  }
+
+  async function openKeyInspector(keyId, trigger) {
+    state.lastTrigger = trigger || null;
+    window.clearTimeout(state.closeTimer);
+    try {
+      const telemetry = await api(`/console/api/api-keys/${encodeURIComponent(keyId)}/telemetry?hours=24`);
+      const k = telemetry.key;
+      const totals = telemetry.totals || {};
+      const buckets = telemetry.buckets || [];
+      const maxBucket = Math.max(1, ...buckets.map((b) => Number(b.total_count || 0)));
+      const highPriv = new Set(["payments:refund", "keys:write", "merchants:write", "*"]);
+      const scopeBadges = (k.scopes || [])
+        .map((s) => `<span class="chip ${highPriv.has(s) ? "chip-warn" : ""}">${escapeHtml(s)}</span>`)
+        .join("");
+      const barsHtml = buckets.length
+        ? `<div class="telemetry-bars">${buckets
+            .map((b) => {
+              const pct = Math.max(10, Math.round((Number(b.total_count || 0) / maxBucket) * 100));
+              const hasErr = (b.auth_error_count || 0) + (b.rate_limit_count || 0) + (b.server_error_count || 0) > 0;
+              return `<div class="telemetry-bar ${hasErr ? "has-errors" : ""}" style="height:${pct}%" title="${escapeHtml(formatDateTime(b.bucket_start))}: ${b.total_count} req"></div>`;
+            })
+            .join("")}</div>`
+        : `<p class="hint">No API requests recorded in the last 24 hours.</p>`;
+      const auditHtml = (telemetry.recent_audit || []).length
+        ? `<div class="audit-list">${telemetry.recent_audit
+            .map(
+              (a) => `<div class="audit-row"><strong>${escapeHtml(a.action)}</strong><span class="hint">${escapeHtml(a.result)} · ${escapeHtml(formatDateTime(a.occurred_at))}</span></div>`
+            )
+            .join("")}</div>`
+        : `<p class="hint">${escapeHtml(t("console.auditEmpty"))}</p>`;
+
+      const drawerTitle = document.getElementById("drawerTitle");
+      if (drawerTitle) drawerTitle.textContent = t("console.keyTelemetryTitle");
+      const canRename = hasScope("keys:write");
+      els.drawerBody.innerHTML = `
+        <div class="detail-section">
+          <div class="settlement-row"><span>ID</span><code class="mono">${escapeHtml(k.id)}</code></div>
+          <div class="settlement-row"><span>Prefix</span><code class="mono">${escapeHtml(k.key_prefix)}…</code></div>
+          <div class="settlement-row"><span>Status</span><strong>${escapeHtml(k.status)}</strong></div>
+          <div class="settlement-row"><span>Last used</span><strong>${escapeHtml(k.last_used_at ? formatDateTime(k.last_used_at) : "Never")}</strong></div>
+          <div class="settlement-row"><span>Expires</span><strong>${escapeHtml(k.expires_at ? formatDateTime(k.expires_at) : t("console.keyNoExpiry"))}</strong></div>
+        </div>
+        ${
+          canRename
+            ? `<form id="keyRenameForm" class="refund-form">
+                <div class="field">
+                  <label for="keyRenameInput">${escapeHtml(t("console.keyLabel"))}</label>
+                  <input id="keyRenameInput" type="text" maxlength="80" value="${escapeHtml(k.label || "")}" placeholder="e.g. BNOS Checkout Prod" />
+                </div>
+                <div class="preview-actions">
+                  <button class="btn btn-primary btn-sm" type="submit">${escapeHtml(t("console.keySaveLabel"))}</button>
+                </div>
+                <p class="console-status" id="keyRenameStatus" role="status" aria-live="polite"></p>
+              </form>`
+            : ""
+        }
+        <div class="detail-section">
+          <h3>${escapeHtml(t("console.scopes"))}</h3>
+          <div class="drawer-scope-list">${scopeBadges}</div>
+        </div>
+        <div class="detail-section">
+          <h3>${escapeHtml(t("console.keyUsage24h"))}</h3>
+          <div class="telemetry-grid">
+            <div class="telemetry-stat"><span>${escapeHtml(t("console.keyRequests"))}</span><strong>${Number(totals.total_count || 0)}</strong></div>
+            <div class="telemetry-stat"><span>${escapeHtml(t("console.keySuccess"))}</span><strong>${Number(totals.success_count || 0)}</strong></div>
+            <div class="telemetry-stat"><span>${escapeHtml(t("console.keyAuthErrors"))}</span><strong>${Number(totals.auth_error_count || 0)}</strong></div>
+            <div class="telemetry-stat"><span>${escapeHtml(t("console.keyRateLimited"))}</span><strong>${Number(totals.rate_limit_count || 0)}</strong></div>
+          </div>
+          ${barsHtml}
+          <p class="hint">${escapeHtml(t("console.keyLastEndpoint"))}: <code>${escapeHtml(totals.last_endpoint || "—")}</code></p>
+        </div>
+        <div class="detail-section">
+          <h3>${escapeHtml(t("console.auditTitle"))}</h3>
+          ${auditHtml}
+        </div>
+      `;
+      els.drawer.hidden = false;
+      els.drawerBackdrop.hidden = false;
+      document.body.classList.add("drawer-open");
+      requestAnimationFrame(() => els.drawer.classList.add("is-open"));
+      state.drawerOpen = true;
+      const renameForm = document.getElementById("keyRenameForm");
+      if (renameForm) {
+        renameForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const input = document.getElementById("keyRenameInput");
+          const statusEl = document.getElementById("keyRenameStatus");
+          try {
+            await api(`/console/api/api-keys/${encodeURIComponent(k.id)}`, {
+              method: "PATCH",
+              body: { label: input.value.trim() || null }
+            });
+            setStatus(statusEl, t("console.keyLabelSaved"));
+            await loadOverview();
+          } catch (err) {
+            setStatus(statusEl, err.message || t("console.error"), true);
+          }
+        });
+      }
+      els.drawerClose.focus();
+    } catch (error) {
+      setStatus(els.keyStatus, error.message || t("console.error"), true);
     }
   }
 
@@ -2956,9 +3188,11 @@
     setButton(els.keySubmit, true, "dash.creating", "console.createKey");
     try {
       const expiresInDays = els.keyExpiry.value ? Number(els.keyExpiry.value) : null;
+      const label = els.keyLabel ? els.keyLabel.value.trim() || null : null;
       const created = await api("/console/api/api-keys", {
-        body: { scopes, expires_in_days: expiresInDays }
+        body: { label, scopes, expires_in_days: expiresInDays }
       });
+      if (els.keyLabel) els.keyLabel.value = "";
       const title = els.keyPanel.querySelector("h3");
       title.dataset.i18n = "console.keyCreated";
       title.textContent = t("console.keyCreated");
@@ -2976,6 +3210,11 @@
   });
 
   els.apiKeys.addEventListener("click", async (event) => {
+    const inspect = event.target.closest("[data-inspect-key]");
+    if (inspect) {
+      await openKeyInspector(inspect.dataset.inspectKey, inspect);
+      return;
+    }
     const rotate = event.target.closest("[data-rotate-key]");
     const revoke = event.target.closest("[data-revoke-key]");
     if (!rotate && !revoke) return;
@@ -3005,6 +3244,24 @@
       button.disabled = false;
     }
   });
+
+  if (els.auditFilterGroup) {
+    els.auditFilterGroup.addEventListener("click", async (event) => {
+      const btn = event.target.closest("[data-audit-filter]");
+      if (!btn) return;
+      const prefix = btn.dataset.auditFilter || "";
+      els.auditFilterGroup.querySelectorAll("[data-audit-filter]").forEach((el) => {
+        el.setAttribute("aria-pressed", String(el === btn));
+      });
+      try {
+        const q = prefix ? `?action_prefix=${encodeURIComponent(prefix)}&limit=25` : "?limit=25";
+        const res = await api(`/console/api/audit-logs${q}`);
+        renderAuditLogs(res.data || []);
+      } catch (error) {
+        toast(error.message || t("console.error"));
+      }
+    });
+  }
 
   els.drawerClose.addEventListener("click", closeDrawer);
   els.drawerBackdrop.addEventListener("click", closeDrawer);
