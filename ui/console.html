@@ -911,9 +911,26 @@ const expected = hmacSha256(secret, signed);
                 <p data-i18n="console.pageSettingsLead">Entitlement, signer and reference session controls.</p>
               </div>
             </header>
-            <div class="settings-grid">
-              <div class="settings-col">
-      <article class="dash-card plan-card" id="planCard">
+            <div class="settings-shell" id="settingsShell">
+              <nav class="settings-nav" id="settingsNav" aria-label="Settings sections" data-i18n-aria-label="console.settingsNav">
+                <span class="settings-nav-label" data-i18n="console.settingsGroupWorkspace">Workspace</span>
+                <button type="button" data-settings-section="plan" aria-controls="planCard" data-i18n="console.settingsPlan">Plan</button>
+                <button type="button" data-settings-section="profile" aria-controls="profileCard" data-i18n="console.profileTitle">Business profile</button>
+                <button type="button" data-settings-section="locations" aria-controls="locationsCard" data-i18n="console.locationsTitle">Locations</button>
+                <button type="button" data-settings-section="workspace" aria-controls="workspaceCard" data-i18n="console.workspaceTitle">Workspace details</button>
+                <span class="settings-nav-label" data-i18n="console.settingsGroupTeam">Team &amp; access</span>
+                <button type="button" data-settings-section="team" aria-controls="teamCard" data-i18n="console.teamTitle">Team</button>
+                <span class="settings-nav-label" data-i18n="console.settingsGroupPayments">Payments</span>
+                <button type="button" data-settings-section="routing" aria-controls="routingCard" data-i18n="console.routingTitle">Payment routing</button>
+                <span class="settings-nav-label" data-i18n="console.settingsGroupSecurity">Security</span>
+                <button type="button" data-settings-section="session" aria-controls="sessionCard" data-i18n="console.session">Session</button>
+                <button type="button" data-settings-section="nostr" aria-controls="nostrCard" data-i18n="console.nostrTitle">Nostr sign-in</button>
+                <button type="button" data-settings-section="audit" aria-controls="auditLogCard" data-i18n="console.settingsActivity">Activity log</button>
+              </nav>
+              <div class="settings-content">
+              <p class="sr-only" id="settingsSectionStatus" role="status" aria-live="polite"></p>
+            <div class="settings-grid" id="settingsPanels">
+              <article class="dash-card plan-card is-active" id="planCard" data-settings-panel="plan">
                       <div class="dash-card-head">
                         <div>
                           <h2 data-i18n="console.planTitle">Organization plan</h2>
@@ -941,7 +958,7 @@ const expected = hmacSha256(secret, signed);
                       <p class="console-status" id="planStatus" role="status" aria-live="polite"></p>
                     </article>
 
-                    <article class="dash-card profile-card" id="profileCard">
+                    <article class="dash-card profile-card" id="profileCard" data-settings-panel="profile">
                       <div class="dash-card-head">
                         <div>
                           <h2 data-i18n="console.profileTitle">Business profile</h2>
@@ -982,7 +999,7 @@ const expected = hmacSha256(secret, signed);
                       </form>
                     </article>
 
-                    <article class="dash-card locations-card" id="locationsCard">
+                    <article class="dash-card locations-card" id="locationsCard" data-settings-panel="locations">
                       <div class="dash-card-head">
                         <div>
                           <h2 data-i18n="console.locationsTitle">Locations</h2>
@@ -1012,7 +1029,7 @@ const expected = hmacSha256(secret, signed);
                       <ul class="console-list" id="locationList"></ul>
                     </article>
 
-                    <article class="dash-card team-card" id="teamCard">
+                    <article class="dash-card team-card" id="teamCard" data-settings-panel="team">
                       <div class="dash-card-head">
                         <div>
                           <h2 data-i18n="console.teamTitle">Team</h2>
@@ -1050,7 +1067,7 @@ const expected = hmacSha256(secret, signed);
                       <ul class="console-list" id="memberList"></ul>
                     </article>
 
-                    <article class="dash-card workspace-card">
+                    <article class="dash-card workspace-card" id="workspaceCard" data-settings-panel="workspace">
                       <div class="dash-card-head">
                         <div>
                           <h2 data-i18n="console.workspaceTitle">Workspace details</h2>
@@ -1065,10 +1082,8 @@ const expected = hmacSha256(secret, signed);
                         <div class="details-row"><span data-i18n="console.workspaceLive">Live access</span><strong class="details-lock" id="workspaceLiveValue">Disabled</strong></div>
                       </div>
                     </article>
-              </div>
 
-              <div class="settings-col">
-                        <article class="dash-card routing-card" id="routingCard">
+                        <article class="dash-card routing-card" id="routingCard" data-settings-panel="routing">
                           <div class="dash-card-head">
                             <div>
                               <h2 data-i18n="console.routingTitle">Payment routing</h2>
@@ -1080,7 +1095,7 @@ const expected = hmacSha256(secret, signed);
                           <p class="hint" data-i18n="console.routingNote">Read-only reference. Merchant-managed node/provider connections, failover and credential rotation are planned.</p>
                         </article>
 
-        <article class="dash-card session-card" id="sessionCard">
+        <article class="dash-card session-card" id="sessionCard" data-settings-panel="session">
                           <div class="dash-card-head">
                             <div>
                               <h2 data-i18n="console.session">Session</h2>
@@ -1099,7 +1114,7 @@ const expected = hmacSha256(secret, signed);
                           </div>
                         </article>
 
-        <article class="dash-card nostr-card" id="nostrCard">
+        <article class="dash-card nostr-card" id="nostrCard" data-settings-panel="nostr">
                           <div class="dash-card-head">
                             <div>
                               <h2 data-i18n="console.nostrTitle">Nostr sign-in</h2>
@@ -1137,7 +1152,7 @@ const expected = hmacSha256(secret, signed);
                           <p class="hint" data-i18n="console.nostrSafety">NIP-07 signs a one-time challenge. No nsec, private key or signature secret is stored by this console.</p>
                         </article>
 
-        <article class="dash-card audit-card" id="auditLogCard">
+        <article class="dash-card audit-card" id="auditLogCard" data-settings-panel="audit">
                           <div class="dash-card-head">
                             <div>
                               <h2 data-i18n="console.auditTitle">Security &amp; activity log</h2>
@@ -1164,7 +1179,8 @@ const expected = hmacSha256(secret, signed);
                           <div class="audit-list" id="auditLogList"></div>
                           <p class="empty" id="auditLogEmpty" hidden data-i18n="console.auditEmpty">No audit events recorded yet.</p>
                         </article>
-              </div>
+            </div>
+            </div>
             </div>
           </section>
         </section>

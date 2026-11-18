@@ -35,6 +35,25 @@ for (const page of pages) {
   for (const target of new Set(anchors)) {
     if (!ids.has(target)) problems.push(`${page}: missing anchor target #${target}`);
   }
+
+  for (const tag of [
+    "div",
+    "section",
+    "article",
+    "nav",
+    "main",
+    "aside",
+    "header",
+    "footer",
+    "form",
+    "ul",
+    "ol",
+    "li"
+  ]) {
+    const opens = [...html.matchAll(new RegExp(`<${tag}\\b`, "g"))].length;
+    const closes = [...html.matchAll(new RegExp(`</${tag}>`, "g"))].length;
+    if (opens !== closes) problems.push(`${page}: unbalanced <${tag}> ${opens}/${closes}`);
+  }
 }
 
 for (const file of ["nostr-worker.js", "nostr-signer.js"]) {
@@ -82,5 +101,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  `UI check passed: ${pages.length} pages, local assets, script syntax, anchor targets, i18n keys.`
+  `UI check passed: ${pages.length} pages, local assets, script syntax, anchors, structure, i18n keys.`
 );

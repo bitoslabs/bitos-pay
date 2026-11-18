@@ -1290,6 +1290,18 @@
   }
 
   const VIEWS = new Set(["overview", "payments", "developers", "settings"]);
+  const SETTINGS_SECTIONS_BY_ID = {
+    planCard: "plan",
+    profileCard: "profile",
+    locationsCard: "locations",
+    workspaceCard: "workspace",
+    teamCard: "team",
+    routingCard: "routing",
+    sessionCard: "session",
+    nostrCard: "nostr",
+    auditLogCard: "audit"
+  };
+  let syncSettingsSection = null;
 
   function viewFromHash() {
     const value = window.location.hash.replace(/^#\//, "");
@@ -1297,20 +1309,102 @@
   }
 
   function setActiveNav(view, scrollTo) {
+    const tabScrolls = new Set(
+      Array.from(document.querySelectorAll(".console-tabs a[data-tab-scroll]")).map(
+        (link) => link.dataset.tabScroll
+      )
+    );
+    const railScrolls = new Set(
+      Array.from(document.querySelectorAll(".console-rail .rail-link[data-scroll-to]")).map(
+        (link) => link.dataset.scrollTo
+      )
+    );
+    const scrollInTabs = Boolean(scrollTo && tabScrolls.has(scrollTo));
+    const scrollInRail = Boolean(scrollTo && railScrolls.has(scrollTo));
+
     document.querySelectorAll(".console-tabs a").forEach((link) => {
       const matchesScroll = Boolean(scrollTo && link.dataset.tabScroll === scrollTo);
-      const matchesView = !scrollTo && link.dataset.view === view;
+      const matchesView = link.dataset.view === view && !scrollInTabs;
       if (matchesScroll || matchesView) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
     document.querySelectorAll(".console-rail .rail-link").forEach((link) => {
       const matchesScroll = Boolean(scrollTo && link.dataset.scrollTo === scrollTo);
-      const matchesView = !scrollTo && link.dataset.nav === view;
+      const matchesView = link.dataset.nav === view && !scrollInRail;
       link.classList.toggle("is-active", matchesScroll || matchesView);
       if (matchesScroll) link.setAttribute("aria-current", "location");
       else if (matchesView) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
+  }
+
+  function initSettingsSections() {
+    const nav = document.getElementById("settingsNav");
+    const panels = Array.from(document.querySelectorAll("[data-settings-panel]"));
+    if (!nav || !panels.length) return;
+    const buttons = Array.from(nav.querySelectorAll("[data-settings-section]"));
+    const labels = Array.from(nav.querySelectorAll(".settings-nav-label"));
+    const panelBySection = new Map(
+      panels.map((panel) => [panel.dataset.settingsPanel, panel])
+    );
+    const status = document.getElementById("settingsSectionStatus");
+    let current = panels[0].dataset.settingsPanel;
+
+    const syncAvailability = () => {
+      buttons.forEach((button) => {
+        const panel = panelBySection.get(button.dataset.settingsSection);
+        button.hidden = !panel || panel.hidden;
+      });
+      labels.forEach((label) => {
+        let node = label.nextElementSibling;
+        let hasVisibleItem = false;
+        while (node && !node.classList.contains("settings-nav-label")) {
+          if (node.matches("[data-settings-section]") && !node.hidden) hasVisibleItem = true;
+          node = node.nextElementSibling;
+        }
+        label.hidden = !hasVisibleItem;
+      });
+    };
+
+    const activate = (section, options = {}) => {
+      syncAvailability();
+      let panel = panelBySection.get(section);
+      if (!panel || panel.hidden) {
+        panel = panels.find((item) => !item.hidden) || panels[0];
+      }
+      current = panel.dataset.settingsPanel;
+      panels.forEach((item) => {
+        item.classList.toggle("is-active", item === panel);
+      });
+      let activeButton = null;
+      buttons.forEach((button) => {
+        if (button.dataset.settingsSection === current) {
+          button.setAttribute("aria-current", "location");
+          activeButton = button;
+        } else {
+          button.removeAttribute("aria-current");
+        }
+      });
+      if (status) {
+        status.textContent = activeButton
+          ? `${t("console.settingsShown")} ${activeButton.textContent.trim()}`
+          : "";
+      }
+      if (!options.scroll) return;
+      const shell = document.getElementById("settingsShell");
+      if (!shell || shell.getBoundingClientRect().top >= 90) return;
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth";
+      shell.scrollIntoView({ behavior, block: "start" });
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => activate(button.dataset.settingsSection, { scroll: true }));
+    });
+
+    syncSettingsSection = (section) => activate(section || current, { scroll: false });
+    activate(current, { scroll: false });
   }
 
   function showView(view, options = {}) {
@@ -1323,6 +1417,9 @@
     state.pendingFocus = null;
     state.pendingScroll = null;
     setActiveNav(safe, scrollTo);
+    if (safe === "settings") {
+      syncSettingsSection?.(scrollTo && SETTINGS_SECTIONS_BY_ID[scrollTo]);
+    }
     if (options.scroll !== false) {
       const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
       if (scrollTo) {
@@ -2218,6 +2315,7 @@
     renderApiReference();
     renderWebhooks();
     renderAuditLogs();
+    syncSettingsSection?.();
   }
 
   function apiReferenceGroup(path) {
@@ -3562,6 +3660,7 @@
     if (!state.creatingKey) els.keySubmit.textContent = t("console.createKey");
     updatePresetCount(els.keyForm, els.scopeCount);
     updatePresetCount(els.webhookForm, els.eventCount);
+    syncSettingsSection?.();
   });
 
   if (els.envToggle) {
@@ -3580,6 +3679,7 @@
 
   initReconcileDates();
   init();
+  initSettingsSections();
   loadApiReference();
   void startConsole();
 })();
