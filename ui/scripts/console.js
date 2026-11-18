@@ -1301,6 +1301,9 @@
       const matchesScroll = Boolean(scrollTo && link.dataset.scrollTo === scrollTo);
       const matchesView = !scrollTo && link.dataset.nav === view;
       link.classList.toggle("is-active", matchesScroll || matchesView);
+      if (matchesScroll) link.setAttribute("aria-current", "location");
+      else if (matchesView) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
     });
   }
 

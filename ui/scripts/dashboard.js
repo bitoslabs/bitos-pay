@@ -304,7 +304,43 @@
   window.PayUI.bindCopy(copyPreview, () => previewInvoice.textContent);
   window.PayUI.bindCopy(copyPreviewLink, () => new URL(previewOpen.getAttribute("href"), window.location.href).href);
 
+  function initSectionNav() {
+    const links = Array.from(document.querySelectorAll('#navLinks a[href^="#"]'));
+    const sections = links
+      .map((link) => ({ link, section: document.getElementById(link.getAttribute("href").slice(1)) }))
+      .filter((item) => item.section);
+    if (!sections.length) return;
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      const marker = 120;
+      let current = sections[0];
+      sections.forEach((item) => {
+        if (item.section.getBoundingClientRect().top <= marker) current = item;
+      });
+      sections.forEach((item) => {
+        if (item === current) item.link.setAttribute("aria-current", "page");
+        else item.link.removeAttribute("aria-current");
+      });
+    };
+    const schedule = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    sections.forEach((item) => {
+      item.link.addEventListener("click", () => {
+        sections.forEach((other) => other.link.removeAttribute("aria-current"));
+        item.link.setAttribute("aria-current", "page");
+      });
+    });
+    update();
+  }
+
   window.PayUI.init();
+  initSectionNav();
   renderAll();
   showPreview(payments.find((payment) => payment.status === "pending") || payments[0]);
 })();

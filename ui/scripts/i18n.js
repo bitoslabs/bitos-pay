@@ -11,6 +11,7 @@
       "nav.payments": "Payments",
       "nav.checkout": "Checkout",
       "nav.developers": "Developers",
+      "nav.console": "Console",
       "nav.primary": "Primary",
       "common.sandbox": "Sandbox",
       "common.live": "Live",
@@ -497,6 +498,7 @@
       "dash.dateCol": "Date",
       "dash.newRequest": "Create payment request",
       "dash.openCheckout": "Open checkout",
+      "dash.openConsole": "Open console",
       "dash.todayVolume": "Today's volume",
       "dash.successful": "Successful",
       "dash.pending": "Pending",
@@ -679,6 +681,7 @@
       "nav.payments": "ການຊຳລະ",
       "nav.checkout": "ໜ້າຊຳລະ",
       "nav.developers": "ນັກພັດທະນາ",
+      "nav.console": "ຄອນໂຊນ",
       "nav.primary": "ຫຼັກ",
       "common.sandbox": "ທົດສອບ",
       "common.live": "ໃຊ້ງານຈິງ",
@@ -1156,6 +1159,7 @@
       "dash.dateCol": "ວັນທີ",
       "dash.newRequest": "ສ້າງຄຳຂໍຊຳລະເງິນ",
       "dash.openCheckout": "ເປີດໜ້າຊຳລະ",
+      "dash.openConsole": "ເປີດຄອນໂຊນ",
       "dash.todayVolume": "ມູນຄ່າມື້ນີ້",
       "dash.successful": "ສຳເລັດ",
       "dash.pending": "ລໍຖ້າ",
@@ -1356,6 +1360,9 @@
     });
     document.querySelectorAll("[data-i18n-title]").forEach((node) => {
       node.setAttribute("title", t(node.dataset.i18nTitle));
+    });
+    document.querySelectorAll("[data-i18n-tooltip]").forEach((node) => {
+      node.dataset.tooltip = t(node.dataset.i18nTooltip);
     });
     document.querySelectorAll("[data-lang-current]").forEach((node) => {
       node.textContent = lang === "en" ? "EN" : "ລາວ";

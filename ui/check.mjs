@@ -26,6 +26,15 @@ for (const page of pages) {
   for (const id of ["main", "toast"]) {
     if (!html.includes(`id="${id}"`)) problems.push(`${page}: missing #${id}`);
   }
+
+  const ids = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]));
+  const anchors = [
+    ...[...html.matchAll(/href="#([^"/][^"]*)"/g)].map((match) => match[1]),
+    ...[...html.matchAll(/data-(?:scroll-to|tab-scroll)="([^"]+)"/g)].map((match) => match[1])
+  ];
+  for (const target of new Set(anchors)) {
+    if (!ids.has(target)) problems.push(`${page}: missing anchor target #${target}`);
+  }
 }
 
 for (const file of ["nostr-worker.js", "nostr-signer.js"]) {
