@@ -1141,14 +1141,26 @@ const expected = hmacSha256(secret, signed);
                           <div class="dash-card-head">
                             <div>
                               <h2 data-i18n="console.auditTitle">Security &amp; activity log</h2>
-                              <p data-i18n="console.auditLead">Recent key, webhook, profile and team actions for this organization.</p>
+                              <p data-i18n="console.auditLead">Recent security and payment actions for this organization.</p>
                             </div>
-                            <div class="console-scope-presets" id="auditFilterGroup" role="group" aria-label="Audit filter">
-                              <button class="btn btn-glass btn-sm" type="button" data-audit-filter="" aria-pressed="true" data-i18n="console.auditAll">All</button>
-                              <button class="btn btn-glass btn-sm" type="button" data-audit-filter="api_key." aria-pressed="false" data-i18n="console.auditKeys">Keys</button>
-                              <button class="btn btn-glass btn-sm" type="button" data-audit-filter="webhook." aria-pressed="false" data-i18n="console.auditWebhooks">Webhooks</button>
-                            </div>
+                            <label class="audit-filter">
+                              <span class="sr-only" data-i18n="console.auditFilter">Filter activity</span>
+                              <select id="auditFilter">
+                                <option value="" selected data-i18n="console.auditAll">All activity</option>
+                                <option value="console." data-i18n="console.auditSessions">Sessions</option>
+                                <option value="api_key." data-i18n="console.auditKeys">API keys</option>
+                                <option value="webhook_" data-i18n="console.auditWebhooks">Webhooks</option>
+                                <option value="payment_intent." data-i18n="console.auditPayments">Payments</option>
+                                <option value="invoice." data-i18n="console.auditInvoices">Invoices</option>
+                                <option value="payment_link." data-i18n="console.auditLinks">Payment links</option>
+                                <option value="member." data-i18n="console.auditTeam">Team</option>
+                                <option value="location." data-i18n="console.auditLocations">Locations</option>
+                                <option value="merchant." data-i18n="console.auditProfile">Profile</option>
+                                <option value="organization." data-i18n="console.auditWorkspace">Workspace</option>
+                              </select>
+                            </label>
                           </div>
+                          <p class="console-status" id="auditStatus" role="status" aria-live="polite"></p>
                           <div class="audit-list" id="auditLogList"></div>
                           <p class="empty" id="auditLogEmpty" hidden data-i18n="console.auditEmpty">No audit events recorded yet.</p>
                         </article>

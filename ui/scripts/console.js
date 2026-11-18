@@ -44,7 +44,9 @@
     pendingScroll: null,
     apiReference: null,
     apiReferenceQuery: "",
-    editingWebhookId: null
+    editingWebhookId: null,
+    auditLogs: null,
+    auditFilter: ""
   };
 
   const els = {
@@ -277,7 +279,8 @@
     riskMaxPayment: document.getElementById("riskMaxPayment"),
     riskFeeRate: document.getElementById("riskFeeRate"),
     auditLogCard: document.getElementById("auditLogCard"),
-    auditFilterGroup: document.getElementById("auditFilterGroup"),
+    auditFilter: document.getElementById("auditFilter"),
+    auditStatus: document.getElementById("auditStatus"),
     auditLogList: document.getElementById("auditLogList"),
     auditLogEmpty: document.getElementById("auditLogEmpty"),
     scopeCount: document.getElementById("scopeCount"),
@@ -1242,6 +1245,9 @@
     state.overview = null;
     state.payments = [];
     state.query = "";
+    state.auditLogs = null;
+    state.auditFilter = "";
+    if (els.auditFilter) els.auditFilter.value = "";
     document.body.classList.remove("is-authenticated");
     els.paymentSearch.value = "";
     els.consoleView.hidden = true;
@@ -1569,6 +1575,55 @@
     els.riskFeeRate.textContent = `${Number(risk.fee_bps || 0)} bps (${(Number(risk.fee_bps || 0) / 100).toFixed(2)}%)`;
   }
 
+  const AUDIT_ACTION_KEYS = {
+    "api_key.create": "console.auditActionApiKeyCreate",
+    "api_key.rotate": "console.auditActionApiKeyRotate",
+    "api_key.revoke": "console.auditActionApiKeyRevoke",
+    "api_key.label_update": "console.auditActionApiKeyLabelUpdate",
+    "console.session.create": "console.auditActionSessionCreate",
+    "console.nostr.link": "console.auditActionNostrLink",
+    "payment_intent.create": "console.auditActionPaymentIntentCreate",
+    "payment_intent.cancel": "console.auditActionPaymentIntentCancel",
+    "payment_intent.expire": "console.auditActionPaymentIntentExpire",
+    "invoice.settle": "console.auditActionInvoiceSettle",
+    "location.create": "console.auditActionLocationCreate",
+    "location.update": "console.auditActionLocationUpdate",
+    "location.disable": "console.auditActionLocationDisable",
+    "member.invite": "console.auditActionMemberInvite",
+    "member.revoke": "console.auditActionMemberRevoke",
+    "merchant.profile.update": "console.auditActionMerchantProfileUpdate",
+    "organization.nostr_create": "console.auditActionOrganizationNostrCreate",
+    "organization.sandbox_create": "console.auditActionOrganizationSandboxCreate",
+    "organization.bnos_sync": "console.auditActionOrganizationBnosSync",
+    "payment_link.create": "console.auditActionPaymentLinkCreate",
+    "payment_link.disable": "console.auditActionPaymentLinkDisable",
+    "refund.create": "console.auditActionRefundCreate",
+    "settlement.reconcile": "console.auditActionSettlementReconcile",
+    "subscription.created": "console.auditActionSubscriptionCreated",
+    "subscription.activated": "console.auditActionSubscriptionActivated",
+    "webhook_endpoint.create": "console.auditActionWebhookEndpointCreate",
+    "webhook_endpoint.rotate_secret": "console.auditActionWebhookEndpointRotateSecret",
+    "webhook_endpoint.update": "console.auditActionWebhookEndpointUpdate",
+    "webhook_endpoint.disable": "console.auditActionWebhookEndpointDisable",
+    "webhook_delivery.replay": "console.auditActionWebhookDeliveryReplay"
+  };
+
+  const AUDIT_RESULT_KEYS = {
+    ACCEPTED: "console.auditResultAccepted",
+    EXPIRED: "console.auditResultExpired",
+    QUARANTINED: "console.auditResultQuarantined"
+  };
+
+  function auditActionLabel(action) {
+    const key = AUDIT_ACTION_KEYS[action];
+    return key ? t(key) : action;
+  }
+
+  function auditResultLabel(result) {
+    const key = AUDIT_RESULT_KEYS[result];
+    return key ? t(key) : result;
+  }
+
   function renderAuditLogs(entries) {
     if (!els.auditLogCard) return;
     if (!hasScope("keys:read")) {
@@ -1576,19 +1631,26 @@
       return;
     }
     els.auditLogCard.hidden = false;
-    const rows = entries || state.overview?.audit_logs || [];
+    if (entries) state.auditLogs = entries;
+    const rows = state.auditLogs || state.overview?.audit_logs || [];
     els.auditLogEmpty.hidden = rows.length > 0;
+    if (!rows.length) {
+      els.auditLogEmpty.textContent = t(
+        state.auditFilter ? "console.auditFilterEmpty" : "console.auditEmpty"
+      );
+    }
     els.auditLogList.innerHTML = rows
       .map(
         (entry) => `
           <div class="audit-row">
             <div>
-              <strong>${escapeHtml(entry.action)}</strong>
+              <strong>${escapeHtml(auditActionLabel(entry.action))}</strong>
               <span class="hint"> · <code>${escapeHtml(entry.target_ref)}</code></span>
             </div>
-            <div class="hint">
+            <div class="hint audit-meta">
+              <code class="audit-action-id">${escapeHtml(entry.action)}</code> ·
               <span>${escapeHtml(entry.actor_ref)}</span> ·
-              <span>${escapeHtml(entry.result)}</span> ·
+              <span>${escapeHtml(auditResultLabel(entry.result))}</span> ·
               <span>${escapeHtml(formatDateTime(entry.occurred_at))}</span>
             </div>
           </div>
@@ -2292,6 +2354,7 @@
     state.recentPayments = (overview.payments || []).slice(0, 5);
     state.paymentCursor = overview.next_payment_cursor || null;
     state.hasMorePayments = Boolean(overview.has_more_payments);
+    if (!state.auditFilter) state.auditLogs = null;
     if (state.filter !== "all") await loadPaymentPage(false);
     if (state.session) {
       state.session.merchant = overview.merchant || state.session.merchant;
@@ -2384,11 +2447,11 @@
               return `<div class="telemetry-bar ${hasErr ? "has-errors" : ""}" style="height:${pct}%" title="${escapeHtml(formatDateTime(b.bucket_start))}: ${b.total_count} req"></div>`;
             })
             .join("")}</div>`
-        : `<p class="hint">No API requests recorded in the last 24 hours.</p>`;
+        : `<p class="hint">${escapeHtml(t("console.telemetryEmpty"))}</p>`;
       const auditHtml = (telemetry.recent_audit || []).length
         ? `<div class="audit-list">${telemetry.recent_audit
             .map(
-              (a) => `<div class="audit-row"><strong>${escapeHtml(a.action)}</strong><span class="hint">${escapeHtml(a.result)} · ${escapeHtml(formatDateTime(a.occurred_at))}</span></div>`
+              (a) => `<div class="audit-row"><div><strong>${escapeHtml(auditActionLabel(a.action))}</strong><span class="hint"> · <code>${escapeHtml(a.action)}</code></span></div><div class="hint audit-meta"><span>${escapeHtml(auditResultLabel(a.result))}</span> · <span>${escapeHtml(formatDateTime(a.occurred_at))}</span></div></div>`
             )
             .join("")}</div>`
         : `<p class="hint">${escapeHtml(t("console.auditEmpty"))}</p>`;
@@ -3438,20 +3501,19 @@
     });
   }
 
-  if (els.auditFilterGroup) {
-    els.auditFilterGroup.addEventListener("click", async (event) => {
-      const btn = event.target.closest("[data-audit-filter]");
-      if (!btn) return;
-      const prefix = btn.dataset.auditFilter || "";
-      els.auditFilterGroup.querySelectorAll("[data-audit-filter]").forEach((el) => {
-        el.setAttribute("aria-pressed", String(el === btn));
-      });
+  if (els.auditFilter) {
+    els.auditFilter.addEventListener("change", async () => {
+      const prefix = els.auditFilter.value;
+      state.auditFilter = prefix;
+      state.auditLogs = null;
+      setStatus(els.auditStatus, t("console.loading"));
       try {
         const q = prefix ? `?action_prefix=${encodeURIComponent(prefix)}&limit=25` : "?limit=25";
         const res = await api(`/console/api/audit-logs${q}`);
         renderAuditLogs(res.data || []);
+        setStatus(els.auditStatus, "");
       } catch (error) {
-        toast(error.message || t("console.error"));
+        setStatus(els.auditStatus, error.message || t("console.error"), true);
       }
     });
   }

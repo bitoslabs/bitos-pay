@@ -3124,6 +3124,35 @@ body.drawer-open {
 .audit-row code {
   font-family: var(--font-mono);
   font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.audit-filter select {
+  min-height: 34px;
+  max-width: 160px;
+  padding: 0 30px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--s1);
+  color: var(--text);
+  font: 600 11px var(--font-sans);
+  cursor: pointer;
+}
+
+.audit-filter select:hover,
+.audit-filter select:focus-visible {
+  border-color: var(--brand-line);
+}
+
+.audit-action-id {
+  color: var(--muted);
+}
+
+.audit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
 }
 
 @media (max-width: 720px) {

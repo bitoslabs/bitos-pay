@@ -118,7 +118,7 @@ settlement stack, four metrics, seven-day pulse and five recent activities.
 Payments owns create-request, reusable payment links, the full searchable table and
 payment detail, including sandbox refunds and refund history.
 Developers owns API keys, webhook health, one-time secret rotation, a quickstart and a searchable API reference generated from `/openapi.json`. Settings owns plan,
-editable merchant profile, read-only verification state, workspace identifiers, provider routing, signer and session. The
+editable merchant profile, read-only verification state, workspace identifiers, provider routing, signer and session, plus a filterable security and activity log. Audit rows show a localized action label, the raw action id, target, actor, result and local time; unsupported actions fall back to the raw id. The
 routing card names the selected adapter and its mode/status without exposing a
 credential; it is read-only in the reference. The layout is inspired by a
 modern finance workspace but keeps the existing BitOS dark palette,
