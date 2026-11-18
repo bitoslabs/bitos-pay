@@ -242,6 +242,18 @@ svg.i {
   background: var(--brand-soft);
 }
 
+.nav-link .nav-icon {
+  width: 13px;
+  height: 13px;
+  margin-left: 5px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.nav-link:hover .nav-icon {
+  opacity: 1;
+}
+
 .nav-actions {
   display: flex;
   align-items: center;

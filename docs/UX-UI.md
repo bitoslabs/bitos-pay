@@ -88,9 +88,13 @@ python3 -m http.server 8899 --bind 127.0.0.1 --directory bitos-pay/ui
 ```
 
 Open `http://127.0.0.1:8899/`. The UI uses the ecosystem mockup palette and
-supports theme and English/Lao toggles. Static assets and script syntax are
-checked with `node bitos-pay/ui/check.mjs`. Screenshots and interaction checks
-are local UI evidence only; they are not payment evidence.
+supports theme and English/Lao toggles. The static dashboard header, primary
+actions and footer link to the functional console at `console.html`; the console
+brand returns to Overview without leaving the single-page app. In-page dashboard
+navigation reflects the visible section, and anchors clear the sticky header.
+Static assets and script syntax are checked with `node bitos-pay/ui/check.mjs`.
+Screenshots and interaction checks are local UI evidence only; they are not
+payment evidence.
 
 ## 4. Developer console
 

@@ -332,3 +332,6 @@
   color: var(--ok);
 }
 
+body[data-page="dashboard"] [id] {
+  scroll-margin-top: 84px;
+}

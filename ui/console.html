@@ -19,7 +19,7 @@
 
   <div class="console-shell">
     <header class="console-topbar">
-      <a class="console-brand" href="/console/" aria-label="BitOS Pay console">
+      <a class="console-brand" href="#/overview" data-goto="overview" aria-label="BitOS Pay console">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
@@ -76,39 +76,39 @@
           </button>
         </div>
         <nav class="rail-group rail-nav">
-          <a class="rail-link is-active" href="#/overview" data-goto="overview" data-nav="overview" data-tooltip="Overview" aria-label="Overview" data-i18n-aria-label="console.navOverview" title="Overview">
+          <a class="rail-link is-active" href="#/overview" data-goto="overview" data-nav="overview" data-tooltip="Overview" data-i18n-tooltip="console.navOverview" aria-label="Overview" data-i18n-aria-label="console.navOverview" aria-current="page">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /></svg>
           </a>
-          <a class="rail-link rail-link-primary" href="#/payments" data-open-create data-tooltip="New payment" aria-label="Create request" data-i18n-aria-label="console.navCreate" title="Create">
+          <a class="rail-link rail-link-primary" href="#/payments" data-open-create data-tooltip="New payment" data-i18n-tooltip="console.newPayment" aria-label="New payment" data-i18n-aria-label="console.newPayment">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
           </a>
-          <a class="rail-link" href="#/payments" data-goto="payments" data-nav="payments" data-tooltip="Payments" aria-label="Payments" data-i18n-aria-label="console.navPayments" title="Payments">
+          <a class="rail-link" href="#/payments" data-goto="payments" data-nav="payments" data-tooltip="Payments" data-i18n-tooltip="console.navPayments" aria-label="Payments" data-i18n-aria-label="console.navPayments">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7" /></svg>
           </a>
-          <a class="rail-link" href="#/payments" data-goto="payments" data-scroll-to="paymentLinksCard" data-tooltip="Payment links" aria-label="Payment links" data-i18n-aria-label="console.navLinks" title="Payment links">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.5 1.5" /><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7L13 18" /></svg>
+          <a class="rail-link" href="#/payments" data-goto="payments" data-scroll-to="paymentLinksCard" data-tooltip="Payment links" data-i18n-tooltip="console.paymentLinksTitle" aria-label="Payment links" data-i18n-aria-label="console.paymentLinksTitle">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7l9 9-7 7-9-9V4Z" /><circle cx="7.5" cy="7.5" r="1.4" /></svg>
           </a>
-          <a class="rail-link" href="#/payments" data-goto="payments" data-scroll-to="reconciliation" data-tooltip="Reports" aria-label="Reports" data-i18n-aria-label="console.navReports" title="Reports">
+          <a class="rail-link" href="#/payments" data-goto="payments" data-scroll-to="reconciliation" data-tooltip="Reports" data-i18n-tooltip="console.navReports" aria-label="Reports" data-i18n-aria-label="console.navReports">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M7 15v-4M12 15V7M17 15v-6" /></svg>
           </a>
-          <a class="rail-link" href="#/developers" data-goto="developers" data-nav="developers" data-tooltip="API keys" aria-label="Developers" data-i18n-aria-label="console.navDevelopers" title="Developers">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="3" /><path d="m11 12 9 0M17 9v6" /></svg>
+          <a class="rail-link" href="#/developers" data-goto="developers" data-nav="developers" data-scroll-to="api-keys" data-tooltip="Developers" data-i18n-tooltip="console.navDevelopers" aria-label="Developers" data-i18n-aria-label="console.navDevelopers">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 8-4 4 4 4M15 8l4 4-4 4M13.5 5.5l-3 13" /></svg>
           </a>
-          <a class="rail-link" href="#/developers" data-goto="developers" data-scroll-to="webhooks" data-tooltip="Webhooks" aria-label="Webhooks" data-i18n-aria-label="console.navWebhooks" title="Webhooks">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 14.5 7 17a3 3 0 0 1-4-4l3-3a3 3 0 0 1 4 0" /><path d="m14.5 9.5 2.5-2.5a3 3 0 1 1 4 4l-3 3a3 3 0 0 1-4 0" /><path d="m10 14 4-4" /></svg>
+          <a class="rail-link" href="#/developers" data-goto="developers" data-scroll-to="webhooks" data-tooltip="Webhooks" data-i18n-tooltip="console.navWebhooks" aria-label="Webhooks" data-i18n-aria-label="console.navWebhooks">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2" /><path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06" /><path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8" /></svg>
           </a>
-          <a class="rail-link" href="#/settings" data-goto="settings" data-scroll-to="teamCard" data-tooltip="Team" aria-label="Team" data-i18n-aria-label="console.teamTitle" title="Team">
+          <a class="rail-link" href="#/settings" data-goto="settings" data-scroll-to="teamCard" data-tooltip="Team" data-i18n-tooltip="console.teamTitle" aria-label="Team" data-i18n-aria-label="console.teamTitle">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
           </a>
-          <a class="rail-link" href="#/settings" data-goto="settings" data-nav="settings" data-tooltip="Settings" aria-label="Settings" data-i18n-aria-label="console.navSettings" title="Settings">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4Z" /><path d="m4 12 8 4 8-4M4 17l8 4 8-4" /></svg>
+          <a class="rail-link" href="#/settings" data-goto="settings" data-nav="settings" data-tooltip="Settings" data-i18n-tooltip="console.navSettings" aria-label="Settings" data-i18n-aria-label="console.navSettings">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 12h2M10 12h10M4 17h8M16 17h4" /><circle cx="16" cy="7" r="2" /><circle cx="8" cy="12" r="2" /><circle cx="14" cy="17" r="2" /></svg>
           </a>
         </nav>
         <div class="rail-group rail-foot">
-          <a class="rail-link" href="#/developers" data-goto="developers" data-scroll-to="apiReference" data-tooltip="API Docs" aria-label="API reference" data-i18n-aria-label="console.apiReferenceTitle" title="API Docs">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9.7 9a2.4 2.4 0 1 1 3.7 2c-.9.6-1.4 1.1-1.4 2.2" /><path d="M12 17h.01" /></svg>
+          <a class="rail-link" href="#/developers" data-goto="developers" data-scroll-to="apiReference" data-tooltip="API docs" data-i18n-tooltip="console.apiReferenceTitle" aria-label="API reference" data-i18n-aria-label="console.apiReferenceTitle">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" /><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /></svg>
           </a>
-          <a class="rail-link" href="#/settings" data-goto="settings" data-scroll-to="sessionCard" data-tooltip="Session" aria-label="Session" data-i18n-aria-label="console.session" title="Session">
+          <a class="rail-link" href="#/settings" data-goto="settings" data-scroll-to="sessionCard" data-tooltip="Session" data-i18n-tooltip="console.session" aria-label="Session" data-i18n-aria-label="console.session">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z" /><path d="m9 12 2 2 4-4" /></svg>
           </a>
         </div>
@@ -340,7 +340,7 @@
                     <p class="hint" id="balanceHint" data-i18n="console.balanceHint">Net ledger position across sandbox accounts.</p>
                     <div class="balance-actions">
                       <button class="btn btn-primary" type="button" data-open-create data-i18n="console.newPayment">New payment</button>
-                      <a class="btn btn-glass" href="#settlement" data-i18n="console.viewSettlement">Settlement</a>
+                      <a class="btn btn-glass" href="#/overview" data-goto="overview" data-scroll-to="settlement" data-i18n="console.viewSettlement">Settlement</a>
                     </div>
                     <div class="balance-accounts" id="balances">
                       <div class="mini-head">
